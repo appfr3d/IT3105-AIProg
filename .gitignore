@@ -1,0 +1,8 @@
+# VSCode stuff
+.vscode
+
+# venv
+it3105
+
+# python shit
+__pycache__

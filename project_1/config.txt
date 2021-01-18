@@ -1,6 +1,6 @@
-board_type : diamond
+board_type : triangle
 size : 4
-open_cells : 6,7
+empty_cells : 6,7
 number_of_episodes : 10
 
 critic_type : table

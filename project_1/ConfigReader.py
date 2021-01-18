@@ -1,6 +1,8 @@
+import os
 from simWorld import ShapeType
-
 from enum import Enum
+
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # TODO: Flytt denne til critic klassen når den er laget
 class CriticType(Enum):
@@ -9,9 +11,15 @@ class CriticType(Enum):
 
 class ConfigReader():
   def __init__(self):
+    """
+    Sets values to all of the config variables to make sure all the values are initialized in case something is missing¨
+    from the config.txt file. 
+    Calls self.read_config to read the values in the config.txt file and update the config variables.
+    Does a check to enshure that the empty cells are legal.
+    """
     self.board_type = ShapeType.DIAMOND
     self.size = 4
-    self.open_cells = [6,7]
+    self.empty_cells = [6,7]
     self.number_of_episodes = 10
 
     self.critic_type = CriticType.TABLE 
@@ -31,9 +39,17 @@ class ConfigReader():
 
     self.read_config()
 
+    remove_empty_cells = []
+    for i in range(len(self.empty_cells)):
+      if self.empty_cells[i] >= self.size*self.size:
+        print('Warning: empty_cell out of bounds.', self.empty_cells[i], '> '+ str(self.size*self.size - 1) + '. Cell ignored.')
+        remove_empty_cells.append(self.empty_cells[i])
+    for cell in remove_empty_cells:
+      self.empty_cells.remove(cell)
+
     # print(self.board_type)
     # print(self.size)
-    # print(self.open_cells)
+    # print(self.empty_cells)
     # print(self.number_of_episodes)
     # print(self.critic_type)
     # print(self.critic_nn_dimentions)
@@ -47,8 +63,10 @@ class ConfigReader():
     # print(self.frame_delay)
 
   def read_config(self):
-    # Read config file
-    f = open('config.txt')
+    """
+    Reads the config.txt file and saves the values in the corresponding variables
+    """
+    f = open(os.path.join(CURRENT_DIR, 'config.txt'))
     for line in f:
       if line.strip() == '':
         continue
@@ -67,8 +85,8 @@ class ConfigReader():
       elif key == 'size':
         self.size = int(val)
       
-      elif key == 'open_cells':
-        self.open_cells = [int(c) for c in val.split(',')]
+      elif key == 'empty_cells':
+        self.empty_cells = [int(c) for c in val.split(',')]
 
       elif key == 'number_of_episodes':
         self.number_of_episodes = int(val)

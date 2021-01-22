@@ -34,7 +34,7 @@ class Peg(Piece):
     """
     :returns: A color based on the PegState of the piece
     """
-      return self.color_map[self.state]
+    return self.color_map[self.state]
   
   def changeState(self, newState: PegState):
     """

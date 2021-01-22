@@ -1,4 +1,4 @@
-board_type : triangle
+board_type : diamond
 size : 4
 empty_cells : 6,7
 number_of_episodes : 10

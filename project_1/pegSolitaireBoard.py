@@ -94,7 +94,8 @@ class PegSolitaireBoard(HexBoard):
     """
     node_positions, node_layer = self.draw_node_layer(image_size)
     connection_layer = self.draw_connection_matrix(node_positions)
-    return [connection_layer, node_layer] 
+
+    return [connection_layer, node_layer]
 
   def draw_connection_matrix(self, node_positions):
     """
@@ -138,24 +139,30 @@ class PegSolitaireBoard(HexBoard):
     image_center = image_size/2.0
     side_padding = image_size/10.0
     content_width = image_size - 2*side_padding
-    step_size = content_width/(max_width*2) 
+    # Divide halv the content_width on the max number of steps
+    step_size = content_width*0.5/(max_width-1)
     node_size = step_size/4
+
     node_positions = []
     circle_objects = []
     if self.shape == ShapeType.DIAMOND:
-      for row_num in range(len(self.board)): # Calculate position of every node in image
+      # Calculate position of every node in image
+      for row_num in range(len(self.board)): 
         row = self.board[row_num]
         node_position_row = [] 
         for col_num in range(len(row)):
-          x_pos = image_center+col_num*step_size-row_num*step_size
+          x_pos = image_center+(col_num-row_num)*step_size
           y_pos = side_padding+(col_num+row_num)*step_size
           node_position_row.append((x_pos, y_pos))
         node_positions.append(node_position_row)
-      for row_num in range(0, len(self.board)): # Create circle objects
+      
+      # Create circle objects
+      for row_num in range(0, len(self.board)): 
         row = self.board[row_num]
         for col_num in range(0, len(row)):
           circle_obj = Circle(node_positions[row_num][col_num], node_size, row[col_num].get_color())
           circle_objects.append(circle_obj)
+
       node_layer = Layer(1, circle_objects)
 
     elif self.shape == ShapeType.TRIANGLE: 
@@ -166,7 +173,8 @@ class PegSolitaireBoard(HexBoard):
         node_position_row = [] 
         for col_num in range(len(row)):
           if row[col_num] == False:
-            node_position_row.append(False)  # Just a sign to not create a display circle later
+            # Just a sign to not create a display circle later
+            node_position_row.append(False)
           else:
             x_pos = image_center+col_num*step_size-(row_num*step_size*0.5)
             y_pos = side_padding+row_num*step_size
@@ -175,8 +183,9 @@ class PegSolitaireBoard(HexBoard):
 
       for row_num in range(0, len(self.board)):
         row = self.board[row_num]
-        for col_num in range(0, len(row)): 
-          if node_positions[row_num][col_num]:  # If node_positions w/index has any value other than false
+        for col_num in range(0, len(row)):
+          # If node_positions w/index has any value other than false
+          if node_positions[row_num][col_num]:  
             circle_obj = Circle(node_positions[row_num][col_num], node_size, row[col_num].get_color())
             circle_objects.append(circle_obj)
       node_layer = Layer(1, circle_objects)
@@ -190,7 +199,8 @@ class PegSolitaireBoard(HexBoard):
     if self.count_remaining_pieces() == 1:
       return True
     else:
-      return False  # Note that false here merely means not won YET
+      # Note that false here merely means not won YET
+      return False  
   
   def get_game_over(self):
     """
@@ -200,6 +210,9 @@ class PegSolitaireBoard(HexBoard):
     return len(all_moves) == 0
   
   def count_remaining_pieces(self):
+    """
+    :returns: Number of the remaining pieces on the board.
+    """
     remaining_pieces = 0
     for num0 in range(0, len(self.board)):
       for num1 in range(0, len(self.board[num0])):

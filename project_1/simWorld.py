@@ -125,3 +125,23 @@ class HexBoard(SimWorldBase):
     
   def display(self):
     pass
+
+
+class SimWorldPlayer:
+  def reset_state(self):
+    pass
+
+  def get_state(self):
+    pass
+
+  def get_actions(self):
+    pass
+
+  def do_action(self, action):
+    pass
+
+  def get_game_over(self):
+    pass
+  
+  def get_reward(self):
+    pass

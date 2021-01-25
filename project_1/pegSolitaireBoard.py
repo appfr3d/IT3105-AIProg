@@ -20,6 +20,7 @@ class PegSolitaireBoard(HexBoard):
     """
     super(PegSolitaireBoard, self).__init__(empty_positions, shape, size)
     self.init_board_pieces()
+    self.last_selected_piece = None
   
   def init_board_pieces(self):
     """
@@ -39,7 +40,7 @@ class PegSolitaireBoard(HexBoard):
       for position in self.empty_positions: 
         row = position//self.size
         col = position%self.size
-        self.board[row][col].changeState(PegState.REMOVED)
+        self.board[row][col].change_state(PegState.REMOVED)
 
     if self.shape == ShapeType.TRIANGLE:
       for row_num in range(len(self.board)):
@@ -78,7 +79,7 @@ class PegSolitaireBoard(HexBoard):
 
         elif position_index in self.empty_positions:
            # If on right side of diagonal, and at right position, remove piece at that position
-          self.board[matrix_index//self.size][matrix_index%self.size].changeState(PegState.REMOVED) 
+          self.board[matrix_index//self.size][matrix_index%self.size].change_state(PegState.REMOVED) 
           matrix_index += 1
           position_index += 1
         
@@ -218,7 +219,7 @@ class PegSolitaireBoard(HexBoard):
       for num1 in range(0, len(self.board[num0])):
         val = self.board[num0][num1]
         if val:  # if val is not false
-          if val.state == PegState.UNSELECTED or PegState.SELECTED: 
+          if val.state == PegState.UNSELECTED or val.state == PegState.SELECTED: 
             remaining_pieces += 1
     return remaining_pieces
 
@@ -342,3 +343,31 @@ class PegSolitaireBoard(HexBoard):
     elif self.shape == ShapeType.TRIANGLE:
       board_index = (connection_index // len(self.board), connection_index % len(self.board))
       return board_index
+
+  def do_action(self, action):
+    # Set the last selected piece to not be displayed as last selected
+    # Note that selection has no impact on game rules, but it is used for the visual display
+    if not self.last_selected_piece == None:
+      self.last_selected_piece.change_state(PegState.UNSELECTED)
+    
+    from_node = action['from']
+    to_node = action['to']
+    # Calculate distance between nodes
+    middle_node = (to_node[0] - from_node[0], to_node[1] - from_node[1])
+
+    # Use distance between nodes to calculate position of node in middle
+    middle_node = (middle_node[0]//2 + from_node[0], middle_node[1]//2 + from_node[1])
+    # print("From:", from_node, "To:", to_node, "Middle:", middle_node)
+
+    # Find nodes from indexes
+    from_node = self.board[from_node[0]][from_node[1]]
+    middle_node = self.board[middle_node[0]][middle_node[1]]
+    to_node = self.board[to_node[0]][to_node[1]]
+    # Remove the moved and removed pegs
+    from_node.remove_peg()
+    middle_node.remove_peg()
+    
+    # Set to_node to be selected, and save the peg as selected
+    to_node.change_state(PegState.SELECTED)
+    self.last_selected_piece = to_node
+  

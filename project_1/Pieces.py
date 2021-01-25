@@ -3,7 +3,7 @@ import typing
 
 class Piece:
   """
-  Generic class for all pieces
+  Generic class for all pieces 
   """
   def __init__(self, position: tuple):
     """
@@ -27,7 +27,7 @@ class Peg(Piece):
     """
     super(Peg, self).__init__(position)
     self.state = state
-    self.color_map = {PegState.SELECTED: (255, 0, 0), PegState.UNSELECTED: (0, 0, 255), PegState.REMOVED: (200, 200, 200)}
+    self.color_map = {PegState.SELECTED: (0, 0, 255), PegState.UNSELECTED: (255, 0, 0), PegState.REMOVED: (200, 200, 200)}
   
 
   def get_color(self):
@@ -36,9 +36,15 @@ class Peg(Piece):
     """
     return self.color_map[self.state]
   
-  def changeState(self, newState: PegState):
+  def change_state(self, newState: PegState):
     """
     Sets the Peg state of the piece
     :param PegState: The peg state to change to
     """
     self.state = newState
+
+  def remove_peg(self): 
+    """
+    abstraction/helper for change_state to REMOVED
+    """
+    self.change_state(PegState.REMOVED)

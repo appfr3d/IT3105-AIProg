@@ -1,4 +1,8 @@
 from PIL import Image, ImageDraw
+# import matplotllib.pyplot as plt
+from cv2 import cv2
+import numpy as np
+
 # "Interface" class for drawable entities
 class DrawableInterface():
   def __init__(self):
@@ -78,15 +82,23 @@ class ImageDisplay():
     """
     self.sim_world = sim_world
     self.image_size = image_size
-  
-  def display(self):
+
+  def display(self, frame_delay):
     """
-    Displays the sim world
+    Generates image representing the sim world
     """
     layers = self.sim_world.display(self.image_size)
     layers.sort(key=lambda x: x.layer_position)
     img = Image.new('RGB', (self.image_size, self.image_size), color='white')
+    
+    
     drawer = ImageDraw.Draw(img)
     for layer in layers:
       layer.draw(drawer)
-    img.show()
+    
+    cv2.imshow('image',np.array(img))
+    cv2.waitKey(frame_delay)
+
+    # img.show()
+    
+      

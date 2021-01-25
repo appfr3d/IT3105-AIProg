@@ -31,11 +31,13 @@ class ConfigReader():
     self.actor_eligibility_decay_rate = 0.5
     self.critic_eligibility_decay_rate = 0.5
 
-    self.actor_discount_factor = 0.5
-    self.critic_discount_factor = 0.5
+    self.actor_discount_factor = 0.9
+    self.critic_discount_factor = 0.9
 
     self.initial_epsilon = 0.9
-    self.frame_delay = 0.5
+    
+    self.frame_delay = 1000
+    self.image_size = 1000
 
     self.read_config()
 
@@ -122,4 +124,8 @@ class ConfigReader():
         self.initial_epsilon = float(val)
 
       elif key == 'frame_delay':
-        self.frame_delay = float(val)
+        # In millisecounds
+        self.frame_delay = int(val)
+      
+      elif key == 'image_size':
+        self.image_size = int(val)

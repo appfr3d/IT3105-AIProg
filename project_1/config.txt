@@ -1,20 +1,22 @@
-board_type : diamond
-size : 4
-empty_cells : 6,7
-number_of_episodes : 10
+board_type : triangle
+size : 7
+empty_cells : 3
+number_of_episodes : 10000
 
 critic_type : table
 critic_nn_dimentions : 15, 20, 30, 5, 1
 
-actor_learning_rate : 0.6
-critic_learning_rate : 0.3
+actor_learning_rate : 0.1
+critic_learning_rate : 0.1
 
-actor_eligibility_decay_rate : 0.5
-critic_eligibility_decay_rate : 0.5
+actor_eligibility_decay_rate : 0.9
+critic_eligibility_decay_rate : 0.9
 
-actor_discount_factor : 0.5
-critic_discount_factor : 0.5
+actor_discount_factor : 0.95
+critic_discount_factor : 0.95
 
-initial_epsilon : 0.9
+initial_epsilon : 0.25
 
-frame_delay : 0.5
+frame_delay : 1000
+
+image_size : 1000

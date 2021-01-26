@@ -28,7 +28,12 @@ class ReinforcementLearner():
       self.sim_world_player.reset_state()
 
       # Only decay epsilon if we find a correct solution
-      self.actor.epsilon_decay()
+      # self.actor.epsilon_decay()
+
+      # Logaritmic
+      self.actor.epsilon = self.config.initial_epsilon * 10**(-(2*episode)/self.config.number_of_episodes)
+
+      # Linear
       # self.actor.epsilon = 1 - (episode/self.config.number_of_episodes)
     
     self.display_log()

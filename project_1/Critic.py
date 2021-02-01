@@ -19,6 +19,9 @@ class Critic():
   def set_eligibility(self, state, value):
     pass
   
+  def reset_eligibility(self):
+    pass
+
   def get_TD_error(self, old_state, new_state):
     pass
 
@@ -121,7 +124,7 @@ class NNCritic(Critic):
     model.add(keras.layers.Dense(self.nn_dimentions[-1], activation='softmax'))
 
     model.compile(optimizer=opt(lr=self.learning_rate), loss=loss, metrics=[keras.metrics.MSE])
-    # model.build(input_shape = (1,16))
+    model.build(input_shape = (1,16))
     return model
     
   def get_TD_error(self, reinforcement, old_state, new_state):
@@ -134,4 +137,4 @@ class NNCritic(Critic):
     new = tf.convert_to_tensor([new_state])
     old = tf.convert_to_tensor([old_state])
     target = reinforcement + self.discount_factor * self.model(new) 
-    self.nn.fit(old, target, verbosity=0) # Vet ikke om denne funker men det er det den skal gjøre hvertfall
+    self.nn.fit(old, target, verbosity=0) 

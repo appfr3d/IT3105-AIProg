@@ -1,5 +1,10 @@
-import ConfigReader
 import random
+from enum import Enum
+from tensorflow import keras
+import tensorflow as tf
+
+import ConfigReader
+import SplitGD
 
 class Critic():
   """
@@ -16,6 +21,13 @@ class Critic():
   
   def get_TD_error(self, old_state, new_state):
     pass
+
+  def reset_eligibility(self):
+    pass
+
+class CriticType(Enum):
+  TABLE = 1
+  NN = 2
 
 class TableCritic(Critic):
   def __init__(self, config: ConfigReader):
@@ -65,3 +77,64 @@ class TableCritic(Critic):
     self.check_and_initialize_value(old_state)
     
     return reinforcement + self.discount_factor*self.state_value_map[new_state] - self.state_value_map[old_state]
+
+
+
+class NNCritic(Critic):
+  def __init__(self, config: ConfigReader):
+    self.learning_rate = config.critic_learning_rate
+    self.eligibility_decay_rate = config.critic_eligibility_decay_rate
+    self.discount_factor = config.critic_discount_factor
+    self.nn_dimentions = config.critic_nn_dimentions
+    
+    self.model = self.generate_fully_connected()
+    self.nn = SplitGD.ReinforcementGD(self.model, self.discount_factor, self.eligibility_decay_rate)
+
+    print(self.model.summary())
+
+  def reset_eligibility(self):
+    self.nn.eligibility_gradients = None
+  
+  def generate_conv(self):
+    opt = keras.optimizers.SGD
+    loss = keras.losses.MSE  # AS done in actor critic PDF
+    model = keras.models.Sequential()
+
+    # Add a Conv1D layer for each of the first specified dimentions
+    for dim in self.nn_dimentions[:-1]:
+      model.add(keras.layers.Conv1D(dim, kernel_size=3, strides=1, activation='relu'))
+      model.add(keras.layers.MaxPooling1D(pool_size=3, strides=3))
+    
+    # Add the last layer with softmax as the activation function
+    model.add(keras.layers.Dense(self.nn_dimentions[-1], activation='softmax')) 
+
+    # Compile and return the model
+    model.compile(optimizer=opt(lr=self.learning_rate), loss=loss, metrics=[keras.metrics.categorical_accuracy])
+    model.build(input_shape = (16,))
+    return model
+  
+  def generate_fully_connected(self):
+    opt = keras.optimizers.SGD
+    loss = keras.losses.MSE
+    model = keras.models.Sequential()
+
+    for dim in self.nn_dimentions[:-1]:
+      model.add(keras.layers.Dense(dim, activation='relu'))
+    
+    model.add(keras.layers.Dense(self.nn_dimentions[-1], activation='softmax'))
+
+    model.compile(optimizer=opt(lr=self.learning_rate), loss=loss, metrics=[keras.metrics.MSE])
+    # model.build(input_shape = (1,16))
+    return model
+    
+  def get_TD_error(self, reinforcement, old_state, new_state):
+    new = tf.convert_to_tensor([new_state])
+    old = tf.convert_to_tensor([old_state])
+
+    return reinforcement + self.discount_factor*self.model(old) - self.model(new)
+  
+  def update(self, reinforcement, old_state, new_state): 
+    new = tf.convert_to_tensor([new_state])
+    old = tf.convert_to_tensor([old_state])
+    target = reinforcement + self.discount_factor * self.model(new) 
+    self.nn.fit(old, target, verbosity=0) # Vet ikke om denne funker men det er det den skal gjøre hvertfall

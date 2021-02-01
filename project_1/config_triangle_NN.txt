@@ -1,0 +1,22 @@
+board_type : triangle
+size : 5
+empty_cells : 4
+number_of_episodes : 400
+
+critic_type : nn
+critic_nn_dimentions : 35, 10, 1
+
+actor_learning_rate : 0.1
+critic_learning_rate : 0.01
+
+actor_eligibility_decay_rate : 0.9
+critic_eligibility_decay_rate : 0.9
+
+actor_discount_factor : 0.95
+critic_discount_factor : 0.95
+
+initial_epsilon : 0.25
+
+frame_delay : 1000
+
+image_size : 1000

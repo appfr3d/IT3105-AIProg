@@ -1,13 +1,8 @@
 import os
 from simWorld import ShapeType
-from enum import Enum
+from Critic import CriticType
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-
-# TODO: Flytt denne til critic klassen når den er laget
-class CriticType(Enum):
-  TABLE = 1
-  NN = 2
 
 class ConfigReader():
   def __init__(self):
@@ -63,12 +58,24 @@ class ConfigReader():
     # print(self.critic_discount_factor)
     # print(self.initial_epsilon)
     # print(self.frame_delay)
+    # print(self.image_size)
 
   def read_config(self):
     """
     Reads the config.txt file and saves the values in the corresponding variables
     """
-    f = open(os.path.join(CURRENT_DIR, 'config.txt'))
+    # Ask the use which config file to use
+    config_files = [f for f in os.listdir(CURRENT_DIR) if f.startswith("config") and f.endswith(".txt")]
+    print('Which config file do you want to use?:')
+    for i in range(len(config_files)):
+      print('(' + str(i) + '): ' + config_files[i])
+    file_index = input('(0-'+str(len(config_files)-1)+'): ')
+    while not file_index.isdigit() or int(file_index) < 0 or int(file_index) > (len(config_files)-1):
+      file_index = input('(0-'+str(len(config_files)-1)+'): ')
+    
+    file_name = config_files[int(file_index)]
+
+    f = open(os.path.join(CURRENT_DIR, file_name))
     for line in f:
       if line.strip() == '':
         continue

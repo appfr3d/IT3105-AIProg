@@ -31,10 +31,12 @@ class ReinforcementLearner():
     # Run all episodes
     for episode in tqdm(range(self.config.number_of_episodes), desc="Episodes"):
       self.run_episode()
+      if self.sim_world_player.get_reward() == 1.0:
+        self.actor.epsilon_decay()
       self.sim_world_player.reset_state()
 
       # Only decay epsilon if we find a correct solution
-      self.actor.epsilon_decay()
+
 
       # Logaritmic
       #self.actor.epsilon = self.config.initial_epsilon * 10**(-(2*episode)/self.config.number_of_episodes)
@@ -115,7 +117,7 @@ class ReinforcementLearner():
 
         old_state = new_state
         old_action = new_action
-        
+
     self.peg_log.append(self.sim_world_player.get_remaining_pegs())
   
   def display_log(self):
@@ -129,4 +131,5 @@ class ReinforcementLearner():
     self.actor.epsilon = 0
     self.sim_world_player.display = True
     self.sim_world_player.force_display_frame()
+
     self.run_episode()

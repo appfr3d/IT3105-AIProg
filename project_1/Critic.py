@@ -34,14 +34,17 @@ class TableCritic(Critic):
     self.discount_factor = config.critic_discount_factor
     self.state_value_map = {}
     self.state_eligibility_map = {}
+    self.state_count_map = {}
 
   def check_and_initialize_value(self, state):
     """
     if the value is not in the state_value_map, initialize it wit a small random value
     """
     if not state in self.state_value_map:
-      self.state_value_map[state] =  random.uniform(0, 0.1)
+      self.state_value_map[state] = random.uniform(0, 0.1)
       self.state_eligibility_map[state] = 0
+      self.state_count_map[state] = 0
+    self.state_count_map[state] += 1
       
   def eligibility_decay(self, state):
     """
@@ -83,7 +86,8 @@ class NNCritic(Critic):
     self.eligibility_decay_rate = config.critic_eligibility_decay_rate
     self.discount_factor = config.critic_discount_factor
     self.nn_dimentions = config.critic_nn_dimentions
-    
+    self.input_size = (1, config.size*config.size)
+
     self.model = self.generate_fully_connected()
     self.nn = SplitGD.ReinforcementGD(self.model, self.discount_factor, self.eligibility_decay_rate)
 
@@ -107,7 +111,7 @@ class NNCritic(Critic):
 
     # Compile and return the model
     model.compile(optimizer=opt(lr=self.learning_rate), loss=loss, metrics=[keras.metrics.categorical_accuracy])
-    model.build(input_shape = (16,))
+    model.build(input_shape = self.input_size)
     return model
   
   def generate_fully_connected(self):
@@ -118,10 +122,10 @@ class NNCritic(Critic):
     for dim in self.nn_dimentions[:-1]:
       model.add(keras.layers.Dense(dim, activation='relu'))
     
-    model.add(keras.layers.Dense(self.nn_dimentions[-1], activation='softmax'))
+    model.add(keras.layers.Dense(self.nn_dimentions[-1], activation='relu'))
 
     model.compile(optimizer=opt(lr=self.learning_rate), loss=loss, metrics=[keras.metrics.MSE])
-    # model.build(input_shape = (1,16))
+    model.build(input_shape = self.input_size)
     return model
     
   def get_TD_error(self, reinforcement, old_state, new_state):

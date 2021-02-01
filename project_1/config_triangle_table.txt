@@ -1,7 +1,7 @@
 board_type : triangle
 size : 5
-empty_cells : 4
-number_of_episodes : 100
+empty_cells : 7
+number_of_episodes : 500
 
 critic_type : table
 critic_nn_dimentions : 15, 20, 30, 5, 1

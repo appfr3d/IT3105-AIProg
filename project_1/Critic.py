@@ -22,8 +22,6 @@ class Critic():
   def get_TD_error(self, old_state, new_state):
     pass
 
-  def reset_eligibility(self):
-    pass
 
 class CriticType(Enum):
   TABLE = 1
@@ -77,7 +75,6 @@ class TableCritic(Critic):
     self.check_and_initialize_value(old_state)
     
     return reinforcement + self.discount_factor*self.state_value_map[new_state] - self.state_value_map[old_state]
-
 
 
 class NNCritic(Critic):

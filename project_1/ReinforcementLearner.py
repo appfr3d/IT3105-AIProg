@@ -2,6 +2,7 @@ from PegSolitairePlayer import PegSolitairePlayer
 import ConfigReader
 from Actor import Actor
 from Critic import TableCritic, NNCritic, CriticType
+from simWorld import ShapeType
 from matplotlib import pyplot as plt
 import matplotlib
 from tqdm import tqdm
@@ -125,7 +126,17 @@ class ReinforcementLearner():
     plt.xlabel("Episode")
     plt.ylabel("Pegs remaining")
     # plt.show()
-    plt.savefig("mygraph.png")
+    if isinstance(self.critic, NNCritic):
+      critic_name = "NN"
+    else:
+      critic_name = "table"
+    
+    if self.config.board_type == ShapeType.TRIANGLE:
+      board_name = "triangle"
+    else: 
+      board_name = "diamond"
+    plot_name = "graphs/graph_" + board_name + "_" + critic_name + ".png"
+    plt.savefig(plot_name)
 
   def display_game(self):
     self.actor.epsilon = 0

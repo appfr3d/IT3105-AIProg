@@ -34,7 +34,6 @@ class TableCritic(Critic):
     self.discount_factor = config.critic_discount_factor
     self.state_value_map = {}
     self.state_eligibility_map = {}
-    self.state_count_map = {}
 
   def check_and_initialize_value(self, state):
     """
@@ -43,8 +42,6 @@ class TableCritic(Critic):
     if not state in self.state_value_map:
       self.state_value_map[state] = random.uniform(0, 0.1)
       self.state_eligibility_map[state] = 0
-      self.state_count_map[state] = 0
-    self.state_count_map[state] += 1
       
   def eligibility_decay(self, state):
     """
@@ -138,4 +135,4 @@ class NNCritic(Critic):
     new = tf.convert_to_tensor([new_state])
     old = tf.convert_to_tensor([old_state])
     target = reinforcement + self.discount_factor * self.model(new) 
-    self.nn.fit(old, target, verbosity=0) # Vet ikke om denne funker men det er det den skal gjøre hvertfall
+    self.nn.fit(old, target, verbosity=0)

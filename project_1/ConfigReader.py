@@ -3,6 +3,7 @@ from simWorld import ShapeType
 from Critic import CriticType
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+CONFIG_DIR = os.path.join(CURRENT_DIR, "configs")
 
 class ConfigReader():
   def __init__(self):
@@ -65,7 +66,7 @@ class ConfigReader():
     Reads the config.txt file and saves the values in the corresponding variables
     """
     # Ask the use which config file to use
-    config_files = [f for f in os.listdir(CURRENT_DIR) if f.startswith("config") and f.endswith(".txt")]
+    config_files = [f for f in os.listdir(CONFIG_DIR) if f.startswith("config") and f.endswith(".txt")]
     print('Which config file do you want to use?:')
     for i in range(len(config_files)):
       print('(' + str(i) + '): ' + config_files[i])
@@ -75,7 +76,7 @@ class ConfigReader():
     
     file_name = config_files[int(file_index)]
 
-    f = open(os.path.join(CURRENT_DIR, file_name))
+    f = open(os.path.join(CONFIG_DIR, file_name))
     for line in f:
       if line.strip() == '':
         continue

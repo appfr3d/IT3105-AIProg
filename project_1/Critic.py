@@ -90,7 +90,7 @@ class NNCritic(Critic):
     self.model = self.generate_fully_connected()
     self.nn = SplitGD.ReinforcementGD(self.model, self.discount_factor, self.eligibility_decay_rate)
 
-    print(self.model.summary())
+    # print(self.model.summary())
 
   def reset_eligibility(self):
     self.nn.eligibility_gradients = None
@@ -124,7 +124,7 @@ class NNCritic(Critic):
     model.add(keras.layers.Dense(self.nn_dimentions[-1], activation='softmax'))
 
     model.compile(optimizer=opt(lr=self.learning_rate), loss=loss, metrics=[keras.metrics.MSE])
-    model.build(input_shape = (1,16))
+    # model.build(input_shape = (1,16))
     return model
     
   def get_TD_error(self, reinforcement, old_state, new_state):

@@ -30,7 +30,8 @@ class ReinforcementLearner():
     
   def fit(self):
     # Run all episodes
-    for episode in tqdm(range(self.config.number_of_episodes), desc="Episodes"):
+    #for episode in tqdm(range(self.config.number_of_episodes), desc="Episodes"):
+    for episode in range(self.config.number_of_episodes):
       self.run_episode()
       if self.sim_world_player.get_reward() == 1.0:
         self.actor.epsilon_decay()
@@ -45,7 +46,7 @@ class ReinforcementLearner():
       # Linear
       # self.actor.epsilon = 1 - (episode/self.config.number_of_episodes)
     
-    self.display_log()
+    #self.display_log()
     
   def run_episode(self):
     # Based on 3.1 generic Actor-Critic algorithm

@@ -1,7 +1,7 @@
 board_type : triangle
 size : 5
 empty_cells : 8
-number_of_episodes : 5000
+number_of_episodes : 400
 
 critic_type : table
 critic_nn_dimentions : 15, 20, 30, 5, 1
@@ -9,13 +9,13 @@ critic_nn_dimentions : 15, 20, 30, 5, 1
 actor_learning_rate : 0.1
 critic_learning_rate : 0.1
 
-actor_eligibility_decay_rate : 0.9
-critic_eligibility_decay_rate : 0.9
+actor_eligibility_decay_rate : 0.8972402459603667
+critic_eligibility_decay_rate : 0.8931089114734135
 
-actor_discount_factor : 0.95
-critic_discount_factor : 0.95
+actor_discount_factor : 0.9409684975677948
+critic_discount_factor : 0.602227525679401
 
-initial_epsilon : 0.5
+initial_epsilon : 0.30862613139410333
 
 frame_delay : 1000
 

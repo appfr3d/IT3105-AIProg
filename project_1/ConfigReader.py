@@ -23,16 +23,20 @@ class ConfigReader():
     self.actor_learning_rate = 0.1
     self.critic_learning_rate = 0.1
 
-    self.actor_eligibility_decay_rate = 0.5
-    self.critic_eligibility_decay_rate = 0.5
+    self.actor_eligibility_decay_rate = 0.8972402459603667
+    self.critic_eligibility_decay_rate = 0.8931089114734135
 
-    self.actor_discount_factor = 0.9
-    self.critic_discount_factor = 0.9
+    self.actor_discount_factor = 0.9409684975677948
+    self.critic_discount_factor = 0.602227525679401
 
-    self.initial_epsilon = 0.9
+    self.initial_epsilon = 0.30862613139410333
     
     self.frame_delay = 1000
     self.image_size = 1000
+
+    self.positive_reward_on_win = 1000
+    self.negative_reward_on_loss_base = 0.27798283333040524
+    self.negative_reward_on_loss_per_peg = 0.4762362992036559
 
     self.read_config()
 
@@ -65,15 +69,15 @@ class ConfigReader():
     Reads the config.txt file and saves the values in the corresponding variables
     """
     # Ask the use which config file to use
-    config_files = [f for f in os.listdir(CURRENT_DIR) if f.startswith("config") and f.endswith(".txt")]
-    print('Which config file do you want to use?:')
-    for i in range(len(config_files)):
-      print('(' + str(i) + '): ' + config_files[i])
-    file_index = input('(0-'+str(len(config_files)-1)+'): ')
-    while not file_index.isdigit() or int(file_index) < 0 or int(file_index) > (len(config_files)-1):
-      file_index = input('(0-'+str(len(config_files)-1)+'): ')
+    #config_files = [f for f in os.listdir(CURRENT_DIR) if f.startswith("config") and f.endswith(".txt")]
+    #print('Which config file do you want to use?:')
+    #for i in range(len(config_files)):
+    #  print('(' + str(i) + '): ' + config_files[i])
+    #file_index = input('(0-'+str(len(config_files)-1)+'): ')
+    #while not file_index.isdigit() or int(file_index) < 0 or int(file_index) > (len(config_files)-1):
+    #  file_index = input('(0-'+str(len(config_files)-1)+'): ')
     
-    file_name = config_files[int(file_index)]
+    file_name = "config_triangle_table.txt"
 
     f = open(os.path.join(CURRENT_DIR, file_name))
     for line in f:

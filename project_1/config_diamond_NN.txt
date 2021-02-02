@@ -1,7 +1,7 @@
 board_type : diamond
 size : 4
 empty_cells : 6
-number_of_episodes : 800
+number_of_episodes : 400
 
 critic_type : nn
 critic_nn_dimentions : 35, 10, 1

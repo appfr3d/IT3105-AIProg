@@ -9,7 +9,7 @@ class PegSolitairePlayer(SimWorldPlayer):
   """
   Bridge between the sim-world and the reinforcement agent
   """
-  def __init__(self, board_empty_positions, board_shape, board_size, image_size, frame_delay):
+  def __init__(self, board_empty_positions, board_shape, board_size, image_size, frame_delay, win_reward, base_loss_reward, loss_reward_peg):
     # Saves board params for re-initialization
     self.board_empty_positions = board_empty_positions
     self.board_shape = board_shape
@@ -19,6 +19,9 @@ class PegSolitairePlayer(SimWorldPlayer):
     self.display = False
     self.image_size = image_size
     self.frame_delay = frame_delay
+    self.win_reward = win_reward
+    self.base_loss_reward = base_loss_reward
+    self.loss_reward_peg = loss_reward_peg
 
   def reset_state(self):
     # Re-initialize board
@@ -72,10 +75,10 @@ class PegSolitairePlayer(SimWorldPlayer):
   
   def get_reward(self):
     if self.game.get_game_over() and self.game.get_win():
-      return 1
-    #remaining_peg_heuristic = (float(self.board_size)*float(self.board_size)-float(self.get_remaining_pegs()))/(float(self.board_size)*float(self.board_size))
-    #available_moves_heuristic = len(self.game.get_all_moves())/self.get_remaining_pegs()
-    return 0
+      return self.win_reward
+    remaining_peg_heuristic = (float(self.board_size)*float(self.board_size)-float(self.get_remaining_pegs()))/(float(self.board_size)*float(self.board_size))
+    available_moves_heuristic = len(self.game.get_all_moves())/self.get_remaining_pegs()
+    return  -self.base_loss_reward -self.get_remaining_pegs()*self.loss_reward_peg
     # #if self.game.get_game_over() and self.game.get_win():
     # #  return 1 
     #return 0

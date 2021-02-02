@@ -96,15 +96,19 @@ class ReinforcementGD(SplitGD):
   def modify_gradients(self, gradients, loss_td): 
     #ei←ei+∂V(st)/∂wi
     #wi←wi+αδe
-    gradients = gradients/loss_td.numpy()[0]  # Because we calculate the gradient already with td-error we do this for storing eliglibility gradients to get the formulas right
+    loss = loss_td.numpy()[0]
+    if loss < 0.000000000000001: # We check this to avoid divide by 0 errors
+      loss = np.ones(shape=(1,), dtype="float32")[0] # If loss is very, very small, gradient will also be very, very small, so we just map loss * and / operations to identity function as the very small gradient
+      # will not be able to impact eligibility gradient tracking
+    gradients = gradients/loss  # Because we calculate the gradient already with td-error we do this for storing eliglibility gradients to get the formulas right
     # (TD error at t=1 shouldn't impact the eligibility in t=2)
     if self.eligibility_gradients is None:
       self.eligibility_gradients = gradients
     else:
       # as in slides
       self.eligibility_gradients = self.eligibility_gradients*self.discount_factor*self.eligibility_decay_rate + gradients
-    
-    return self.eligibility_gradients * loss_td.numpy()[0]  # So we need to get TD error from somewhere
+
+    return self.eligibility_gradients * loss  # So we need to get TD error from somewhere
     #wi←wi+αδe
 
   def fit(self, features, targets, epochs=1, mbs=1,vfrac=0.1,verbosity=1,callbacks=[]):

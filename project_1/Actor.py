@@ -24,14 +24,17 @@ class Actor:
       self.state_eligibility_map[state] = eligibility_map
     
     # Decide whether to explore or to exploit
+    random.seed()
     rand = random.uniform(0, 1)
     if rand < self.epsilon:
       # explore, choose a random action
-      action_key = random.choice(list(self.state_value_map[state].keys()))
+      key_options = list(self.state_value_map[state].keys())
+      action_key = random.choice(key_options)
     else:
       # exploit, choose the action with the highest value
-      action_key = list(self.state_value_map[state].keys())[0]
-      for action in list(self.state_value_map[state].keys())[1:]:
+      key_list = list(self.state_value_map[state].keys())
+      action_key = key_list[0]
+      for action in key_list[1:]:
         if self.state_value_map[state][action] > self.state_value_map[state][action_key]:
           action_key = action
           
@@ -50,7 +53,7 @@ class Actor:
     """
     Decays epsilon slightly. Great performance improvement
     """
-    self.epsilon = max(self.config.initial_epsilon/10.0, self.epsilon * 0.99)
+    self.epsilon = max(self.config.initial_epsilon/10.0, self.epsilon * 0.9)
 
   def reset_eligibility(self):
     for key1 in self.state_eligibility_map.keys():

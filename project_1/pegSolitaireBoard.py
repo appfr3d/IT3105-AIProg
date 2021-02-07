@@ -1,5 +1,5 @@
-from simWorld import HexBoard
-from simWorld import ShapeType
+from SimWorld import HexBoard
+from SimWorld import ShapeType
 from Pieces import Peg, PegState
 from SimWorldDisplayer import Line, Circle, Layer
 from IllegalArgumentException import * 

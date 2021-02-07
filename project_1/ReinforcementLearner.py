@@ -2,10 +2,12 @@ from PegSolitairePlayer import PegSolitairePlayer
 import ConfigReader
 from Actor import Actor
 from Critic import TableCritic, NNCritic, CriticType
-from simWorld import ShapeType
+from SimWorld import ShapeType
 from matplotlib import pyplot as plt
 import matplotlib
 from tqdm import tqdm
+
+from tensorflow.keras.callbacks import TensorBoard
 
 class ReinforcementLearner():
   def __init__(self, sim_world_player, config: ConfigReader):
@@ -38,12 +40,12 @@ class ReinforcementLearner():
 
       # Only decay epsilon if we find a correct solution
       # Triangle needs this if-sentence
-      if self.peg_log[-1] == 1:
-        self.actor.epsilon_decay()
+      # if self.peg_log[-1] == 1:
+      #   self.actor.epsilon_decay()
 
       # Logaritmic
       # if self.peg_log[-1] == 1:
-      #   self.actor.epsilon = self.config.initial_epsilon * 10**(-(2*episode)/self.config.number_of_episodes)
+      # self.actor.epsilon = self.config.initial_epsilon * 10**(-(2*episode)/self.config.number_of_episodes)
 
       # Linear
       # self.actor.epsilon = 1 - (episode/self.config.number_of_episodes)

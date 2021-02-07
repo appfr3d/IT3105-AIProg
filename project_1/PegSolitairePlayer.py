@@ -1,8 +1,8 @@
 from ConfigReader import ConfigReader
-from pegSolitaireBoard import PegSolitaireBoard
-from simWorld import SimWorldPlayer
+from PegSolitaireBoard import PegSolitaireBoard
+from SimWorld import SimWorldPlayer
 import Pieces
-from simWorld import ShapeType
+from SimWorld import ShapeType
 from SimWorldDisplayer import ImageDisplay
 
 class PegSolitairePlayer(SimWorldPlayer):
@@ -72,10 +72,10 @@ class PegSolitairePlayer(SimWorldPlayer):
   
   def get_reward(self):
     if self.game.get_game_over() and self.game.get_win():
-      return 1
+      return 100000
     #remaining_peg_heuristic = (float(self.board_size)*float(self.board_size)-float(self.get_remaining_pegs()))/(float(self.board_size)*float(self.board_size))
     #available_moves_heuristic = len(self.game.get_all_moves())/self.get_remaining_pegs()
-    return 0
+    return -self.get_remaining_pegs()
     # #if self.game.get_game_over() and self.game.get_win():
     # #  return 1 
     #return 0

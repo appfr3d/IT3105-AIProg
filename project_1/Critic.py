@@ -116,11 +116,9 @@ class NNCritic(Critic):
     loss = keras.losses.MSE
     model = keras.models.Sequential()
 
-    for dim in self.nn_dimentions[:-1]:
+    for dim in self.nn_dimentions:
       model.add(keras.layers.Dense(dim, activation='relu'))
     
-    model.add(keras.layers.Dense(self.nn_dimentions[-1], activation='relu'))
-
     model.compile(optimizer=opt(lr=self.learning_rate), loss=loss, metrics=[keras.metrics.MSE])
     model.build(input_shape = self.input_size)
     return model

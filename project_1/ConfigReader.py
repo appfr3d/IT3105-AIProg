@@ -23,16 +23,19 @@ class ConfigReader():
     self.actor_learning_rate = 0.1
     self.critic_learning_rate = 0.1
 
-    self.actor_eligibility_decay_rate = 0.5
-    self.critic_eligibility_decay_rate = 0.5
+    self.actor_eligibility_decay_rate = 0.8972402459603667
+    self.critic_eligibility_decay_rate = 0.8931089114734135
 
-    self.actor_discount_factor = 0.9
-    self.critic_discount_factor = 0.9
+    self.actor_discount_factor = 0.9409684975677948
+    self.critic_discount_factor = 0.602227525679401
 
-    self.initial_epsilon = 0.9
+    self.initial_epsilon = 0.30862613139410333
     
     self.frame_delay = 1000
     self.image_size = 1000
+
+    self.move_loss = 1.0
+    self.peg_loss2 = 1.0
 
     self.read_config()
 
@@ -65,6 +68,7 @@ class ConfigReader():
     Reads the config.txt file and saves the values in the corresponding variables
     """
     # Ask the use which config file to use
+
     config_files = [f for f in os.listdir(CURRENT_DIR) if f.startswith("config") and f.endswith(".txt")]
     print('Which config file do you want to use?:')
     for i in range(len(config_files)):
@@ -72,8 +76,9 @@ class ConfigReader():
     file_index = input('(0-'+str(len(config_files)-1)+'): ')
     while not file_index.isdigit() or int(file_index) < 0 or int(file_index) > (len(config_files)-1):
       file_index = input('(0-'+str(len(config_files)-1)+'): ')
-    
+  
     file_name = config_files[int(file_index)]
+    #file_name = "works well for triangle nn (not tested diamond, but that one worked well already).txt"
 
     f = open(os.path.join(CURRENT_DIR, file_name))
     for line in f:
@@ -136,3 +141,20 @@ class ConfigReader():
       
       elif key == 'image_size':
         self.image_size = int(val)
+
+      elif key == 'win':
+        self.win = float(val)
+      elif key == 'base_loss':
+        self.base_loss = float(val)
+
+      elif key == 'peg_loss':
+        self.peg_loss = float(val)
+
+      elif key == 'peg_loss2':
+        self.peg_loss2 = float(val)
+
+      elif key == 'move_loss':
+        self.move_loss = float(val)
+
+      elif key == 'epsilon_decay_rate':
+        self.epsilon_decay_rate = float(val)

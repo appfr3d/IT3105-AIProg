@@ -37,6 +37,7 @@ class Actor:
       for action in key_list[1:]:
         if self.state_value_map[state][action] > self.state_value_map[state][action_key]:
           action_key = action
+
           
     return action_key
 
@@ -53,7 +54,7 @@ class Actor:
     """
     Decays epsilon slightly. Great performance improvement
     """
-    self.epsilon = max(self.config.initial_epsilon/10.0, self.epsilon * 0.9)
+    self.epsilon = max(self.config.initial_epsilon/10.0, self.epsilon * self.config.epsilon_decay_rate)
 
   def reset_eligibility(self):
     for key1 in self.state_eligibility_map.keys():

@@ -5,11 +5,13 @@ import Pieces
 from simWorld import ShapeType
 from SimWorldDisplayer import ImageDisplay
 
+
 class PegSolitairePlayer(SimWorldPlayer):
   """
   Bridge between the sim-world and the reinforcement agent
   """
-  def __init__(self, board_empty_positions, board_shape, board_size, image_size, frame_delay):
+
+  def __init__(self, board_empty_positions, board_shape, board_size, image_size, frame_delay, win, base_loss, peg_loss, peg_loss2, moves_loss):
     # Saves board params for re-initialization
     self.board_empty_positions = board_empty_positions
     self.board_shape = board_shape
@@ -19,6 +21,11 @@ class PegSolitairePlayer(SimWorldPlayer):
     self.display = False
     self.image_size = image_size
     self.frame_delay = frame_delay
+    self.win = win
+    self.base_loss = base_loss
+    self.peg_loss = peg_loss
+    self.peg_loss2 = peg_loss2
+    self.moves_loss = moves_loss
 
   def reset_state(self):
     # Re-initialize board
@@ -30,24 +37,25 @@ class PegSolitairePlayer(SimWorldPlayer):
     for i0 in range(len(self.game.board)):
       for i1 in range(len(self.game.board[0])):
         if self.game.board[i0][i1] != False:  # If this is not a "non-location" (Triangle board)
-          if self.game.board[i0][i1].state == Pieces.PegState.SELECTED or self.game.board[i0][i1].state == Pieces.PegState.UNSELECTED:
+          if self.game.board[i0][i1].state == Pieces.PegState.SELECTED or self.game.board[i0][
+            i1].state == Pieces.PegState.UNSELECTED:
             state.append(1)
-          else: 
+          else:
             state.append(0)
-        else: 
+        else:
           state.append(0)
     return tuple(state)
 
   def get_actions(self):
     moves = self.game.get_all_moves()
-    rows= len(self.game.board)
+    rows = len(self.game.board)
     actions = []
     for move in moves:
       from_node = move["from"]
       to_node = move["to"]
-      
-      from_index = from_node[0]*rows + from_node[1]
-      to_index = to_node[0]*rows + to_node[1]
+
+      from_index = from_node[0] * rows + from_node[1]
+      to_index = to_node[0] * rows + to_node[1]
       actions.append((from_index, to_index))
 
     return actions
@@ -59,9 +67,9 @@ class PegSolitairePlayer(SimWorldPlayer):
     """
 
     rows, columns = len(self.game.board), len(self.game.board[0])
-    from_node = (action[0]//columns, action[0]%rows)
-    to_node = (action[1]//columns, action[1]%rows)
-    action = {'from':from_node, 'to':to_node}
+    from_node = (action[0] // columns, action[0] % rows)
+    to_node = (action[1] // columns, action[1] % rows)
+    action = {'from': from_node, 'to': to_node}
     self.game.do_action(action)
 
     if self.display:
@@ -69,21 +77,19 @@ class PegSolitairePlayer(SimWorldPlayer):
 
   def get_game_over(self):
     return self.game.get_game_over()
-  
+
   def get_reward(self):
     if self.game.get_game_over() and self.game.get_win():
-      return 1
-    #remaining_peg_heuristic = (float(self.board_size)*float(self.board_size)-float(self.get_remaining_pegs()))/(float(self.board_size)*float(self.board_size))
-    #available_moves_heuristic = len(self.game.get_all_moves())/self.get_remaining_pegs()
-    return 0
+      return self.win
+    remaining_peg_heuristic = (float(self.board_size)*float(self.board_size)-float(self.get_remaining_pegs()))/(float(self.board_size)*float(self.board_size))
+    available_moves_heuristic = len(self.game.get_all_moves())/self.get_remaining_pegs()
+    return -self.base_loss - self.peg_loss * self.get_remaining_pegs() - self.peg_loss2 * remaining_peg_heuristic + available_moves_heuristic * self.moves_loss
     # #if self.game.get_game_over() and self.game.get_win():
-    # #  return 1 
-    #return 0
-  
+    # #  return 1
+    # return 0
 
   def get_remaining_pegs(self):
     return self.game.count_remaining_pieces()
-  
+
   def force_display_frame(self):
     self.sim_world_displayer.display(self.frame_delay)
-  

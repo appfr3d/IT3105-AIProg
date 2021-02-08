@@ -32,10 +32,10 @@ class ReinforcementLearner():
     
   def fit(self):
     # Run all episodes
-    for episode in tqdm(range(self.config.number_of_episodes), desc="Episodes"):
+    for episode in range(self.config.number_of_episodes):
       self.run_episode()
-      if self.sim_world_player.get_reward() == 1.0:
-        self.actor.epsilon_decay()
+      #if self.sim_world_player.get_reward() == 1.0:
+      #  self.actor.epsilon_decay()
       self.sim_world_player.reset_state()
 
       # Only decay epsilon if we find a correct solution
@@ -48,7 +48,8 @@ class ReinforcementLearner():
       # self.actor.epsilon = self.config.initial_epsilon * 10**(-(2*episode)/self.config.number_of_episodes)
 
       # Linear
-      # self.actor.epsilon = 1 - (episode/self.config.number_of_episodes)
+      #self.actor.epsilon = 1 - (episode/self.config.number_of_episodes)
+      self.actor.epsilon *= self.config.epsilon_decay_rate
     
     self.display_log()
     

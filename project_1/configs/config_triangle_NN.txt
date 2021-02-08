@@ -1,8 +1,8 @@
 # diamond or triangle
 board_type : triangle
 size : 5
-empty_cells : 4
-number_of_episodes : 5000
+empty_cells : 8
+number_of_episodes : 800
 
 # table or nn
 critic_type : nn
@@ -20,5 +20,11 @@ critic_discount_factor : 0.95
 initial_epsilon : 0.75
 
 frame_delay : 1000
-
 image_size : 1000
+
+win : 1000
+peg_loss : 0.0
+base_loss : 0.0
+move_loss : 10.0
+peg_loss2 : 10.0
+epsilon_decay_rate : 0.99

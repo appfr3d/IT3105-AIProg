@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 
 config = ConfigReader()
-player = PegSolitairePlayer(config.empty_cells, config.board_type, config.size, config.image_size, config.frame_delay, config.win, config.base_loss, config.peg_loss, config.peg_loss2, config.move_loss)
+player = PegSolitairePlayer(config.empty_cells, config.board_type, config.size, config.image_size, config.frame_delay, config.win_reward, config.base_reward, config.peg_loss, config.peg_loss2, config.move_loss)
 learner = ReinforcementLearner(player, config)
 
 learner.fit()

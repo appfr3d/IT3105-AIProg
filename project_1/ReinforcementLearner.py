@@ -38,11 +38,8 @@ class ReinforcementLearner():
       #  self.actor.epsilon_decay()
       self.sim_world_player.reset_state()
 
-      # Only decay epsilon if we find a correct solution
-      # Triangle needs this if-sentence
-      # if self.peg_log[-1] == 1:
       #   self.actor.epsilon_decay()
-
+      
       # Logaritmic
       # if self.peg_log[-1] == 1:
       # self.actor.epsilon = self.config.initial_epsilon * 10**(-(2*episode)/self.config.number_of_episodes)
@@ -143,6 +140,7 @@ class ReinforcementLearner():
       board_name = "diamond"
     plot_name = "graphs/graph_" + board_name + "_" + critic_name + ".png"
     plt.savefig(plot_name)
+    plt.show()
 
   def display_game(self):
     self.actor.epsilon = 0

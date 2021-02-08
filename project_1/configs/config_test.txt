@@ -1,21 +1,44 @@
+# diamond or triangle
 board_type : diamond
 size : 4
 empty_cells : 6
 number_of_episodes : 800
+
+# table or nn
 critic_type : table
 critic_nn_dimentions : 10, 10, 5, 1
+
 actor_learning_rate : 0.1
 critic_learning_rate : 0.1
+
 actor_eligibility_decay_rate : 0.9
 critic_eligibility_decay_rate : 0.9
+
 actor_discount_factor : 0.95
 critic_discount_factor : 0.95
+
 initial_epsilon : 0.75
+
+# delay in ms
 frame_delay : 1000
+
+# in pixels
 image_size : 1000
+
+# reward for winning
 win_reward : 1000
+
+# loss factor for number of remaining pegs
 peg_loss : 0.0
-base_reward : 0.0
-move_loss : 10.0
+
+# loss factor for number of remaining pegs scaled by board size
 peg_loss2 : 10.0
+
+# base reward for every episode
+base_reward : 0.0
+
+# reward factor for number of possible actions heuristic
+move_loss : 10.0
+
+# decay factor for epsilon
 epsilon_decay_rate : 0.9975

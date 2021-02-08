@@ -11,7 +11,7 @@ class PegSolitairePlayer(SimWorldPlayer):
   Bridge between the sim-world and the reinforcement agent
   """
 
-  def __init__(self, board_empty_positions, board_shape, board_size, image_size, frame_delay, win, base_loss, peg_loss, peg_loss2, moves_loss):
+  def __init__(self, board_empty_positions, board_shape, board_size, image_size, frame_delay, win_reward, base_reward, peg_loss, peg_loss2, moves_loss):
     # Saves board params for re-initialization
     self.board_empty_positions = board_empty_positions
     self.board_shape = board_shape
@@ -21,8 +21,8 @@ class PegSolitairePlayer(SimWorldPlayer):
     self.display = False
     self.image_size = image_size
     self.frame_delay = frame_delay
-    self.win = win
-    self.base_loss = base_loss
+    self.win_reward= win_reward
+    self.base_reward = base_reward
     self.peg_loss = peg_loss
     self.peg_loss2 = peg_loss2
     self.moves_loss = moves_loss
@@ -81,7 +81,7 @@ class PegSolitairePlayer(SimWorldPlayer):
 
   def get_reward(self):
     if self.game.get_game_over() and self.game.get_win():
-      return self.win
+      return self.win_reward
     
     num_pegs_remaining = float(self.get_remaining_pegs())
     # Remaining peg heuristic: Amount of remaining begs, scaled by board size
@@ -90,7 +90,7 @@ class PegSolitairePlayer(SimWorldPlayer):
     # Available moves heuristic: Remaining moves/remaining pegs. A state with many possible moves per peg is more likely to have a successor state that is a victory state (because there are more moves)
     available_moves_heuristic = len(self.game.get_all_moves())/num_pegs_remaining
     
-    return -self.base_loss - self.peg_loss * num_pegs_remaining - self.peg_loss2 * remaining_peg_heuristic + available_moves_heuristic * self.moves_loss
+    return self.base_reward - self.peg_loss * num_pegs_remaining - self.peg_loss2 * remaining_peg_heuristic + available_moves_heuristic * self.moves_loss
     # #if self.game.get_game_over() and self.game.get_win():
     # #  return 1
     # return 0

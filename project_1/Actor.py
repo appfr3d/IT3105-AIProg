@@ -13,7 +13,7 @@ class Actor:
     self.state_eligibility_map = {}
 
   def select_action(self, state, actions):
-    # A state can have no other actions than all actions
+    # A state can have no other actions than the actions already in self.state_value_map for that state
     if not state in self.state_value_map: 
       action_map = {}
       eligibility_map = {}
@@ -45,14 +45,14 @@ class Actor:
     self.state_eligibility_map[state][action] = value
   
   def eligibility_decay(self, state, action):
-    self.state_eligibility_map[state][action] = self.state_eligibility_map[state][action]*self.discount_factor*self.eligibility_decay_rate
+    self.state_eligibility_map[state][action] *= self.discount_factor*self.eligibility_decay_rate
   
   def value_update(self, state, action, TD):
-    self.state_value_map[state][action] = self.state_value_map[state][action] + self.learning_rate*TD*self.state_eligibility_map[state][action]
+    self.state_value_map[state][action] += self.learning_rate*TD*self.state_eligibility_map[state][action]
   
   def epsilon_decay(self):
     """
-    Decays epsilon slightly. Great performance improvement
+    Decays epsilon slightly. Not used
     """
     self.epsilon = max(self.config.initial_epsilon/10.0, self.epsilon * self.config.epsilon_decay_rate)
 

@@ -21,9 +21,9 @@ frame_delay : 1000
 
 image_size : 1000
 
-win : 1000
+win_reward : 1000
 peg_loss : 0.0
-base_loss : 0.0
+base_reward : 0.0
 move_loss : 10.0
 peg_loss2 : 10.0
 epsilon_decay_rate : 0.99

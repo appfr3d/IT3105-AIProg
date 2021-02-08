@@ -1,7 +1,7 @@
 board_type : triangle
 size : 5
 empty_cells : 8
-number_of_episodes : 400
+number_of_episodes : 800
 critic_type : table
 critic_nn_dimentions : 10, 10, 5, 1
 actor_learning_rate : 0.1
@@ -18,4 +18,4 @@ peg_loss : 0.0
 base_loss : 0.0
 move_loss : 10.0
 peg_loss2 : 10.0
-epsilon_decay_rate : 0.99
+epsilon_decay_rate : 0.9975

@@ -37,6 +37,8 @@ class ConfigReader():
 
     self.move_loss = 1.0
     self.peg_loss2 = 1.0
+    self.base_reward = 0.0
+    self.win_reward = 1000
 
     self.read_config()
 
@@ -78,7 +80,6 @@ class ConfigReader():
       file_index = input('(0-'+str(len(config_files)-1)+'): ')
   
     file_name = config_files[int(file_index)]
-    #file_name = "works well for triangle nn (not tested diamond, but that one worked well already).txt"
 
     f = open(os.path.join(CONFIG_DIR, file_name))
     for line in f:
@@ -142,10 +143,10 @@ class ConfigReader():
       elif key == 'image_size':
         self.image_size = int(val)
 
-      elif key == 'win':
-        self.win = float(val)
-      elif key == 'base_loss':
-        self.base_loss = float(val)
+      elif key == 'win_reward':
+        self.win_reward = float(val)
+      elif key == 'base_reward':
+        self.base_reward = float(val)
 
       elif key == 'peg_loss':
         self.peg_loss = float(val)

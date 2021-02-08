@@ -94,6 +94,7 @@ class NNCritic(Critic):
     self.nn.eligibility_gradients = None
   
   def generate_conv(self):
+    # NOT USED
     opt = keras.optimizers.SGD
     loss = keras.losses.MSE  # AS done in actor critic PDF
     model = keras.models.Sequential()
@@ -112,14 +113,20 @@ class NNCritic(Critic):
     return model
   
   def generate_fully_connected(self):
-    opt = keras.optimizers.SGD
-    loss = keras.losses.MSE
+    """
+    :returns a fully connected Sequential keras model with layers as defined in the config file
+    """
+    # USED
+    opt = keras.optimizers.SGD  # Stocastic Gradient Decent
+    loss = keras.losses.MSE     # Mean Square Error
     model = keras.models.Sequential()
 
+    # Add fully connected layers to the model
     for dim in self.nn_dimentions:
       model.add(keras.layers.Dense(dim, activation='relu'))
     
-    model.compile(optimizer=opt(lr=self.learning_rate), loss=loss, metrics=[keras.metrics.MSE])
+    # Mean Square Error (MSE) metric works well with calculating TD-error by using target as in update function
+    model.compile(optimizer=opt(lr=self.learning_rate), loss=loss, metrics=[keras.metrics.MSE]) 
     model.build(input_shape = self.input_size)
     return model
     
@@ -132,5 +139,6 @@ class NNCritic(Critic):
   def update(self, reinforcement, old_state, new_state): 
     new = tf.convert_to_tensor([new_state])
     old = tf.convert_to_tensor([old_state])
+    # Here target used with MSE corresponds to TD error on derivation (based on handout material)
     target = reinforcement + self.discount_factor * self.model(new) 
     self.nn.fit(old, target, verbosity=0)

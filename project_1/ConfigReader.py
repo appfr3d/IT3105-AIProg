@@ -69,16 +69,16 @@ class ConfigReader():
     """
     # Ask the use which config file to use
 
-    # config_files = [f for f in os.listdir(CURRENT_DIR) if f.startswith("config") and f.endswith(".txt")]
-    # print('Which config file do you want to use?:')
-    # for i in range(len(config_files)):
-    #   print('(' + str(i) + '): ' + config_files[i])
-    # file_index = input('(0-'+str(len(config_files)-1)+'): ')
-    # while not file_index.isdigit() or int(file_index) < 0 or int(file_index) > (len(config_files)-1):
-    #   file_index = input('(0-'+str(len(config_files)-1)+'): ')
-    #
-    # file_name = config_files[int(file_index)]
-    file_name = "works well for triangle nn (not tested diamond, but that one worked well already).txt"
+    config_files = [f for f in os.listdir(CURRENT_DIR) if f.startswith("config") and f.endswith(".txt")]
+    print('Which config file do you want to use?:')
+    for i in range(len(config_files)):
+      print('(' + str(i) + '): ' + config_files[i])
+    file_index = input('(0-'+str(len(config_files)-1)+'): ')
+    while not file_index.isdigit() or int(file_index) < 0 or int(file_index) > (len(config_files)-1):
+      file_index = input('(0-'+str(len(config_files)-1)+'): ')
+  
+    file_name = config_files[int(file_index)]
+    #file_name = "works well for triangle nn (not tested diamond, but that one worked well already).txt"
 
     f = open(os.path.join(CURRENT_DIR, file_name))
     for line in f:

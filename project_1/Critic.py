@@ -88,7 +88,7 @@ class NNCritic(Critic):
     self.model = self.generate_fully_connected()
     self.nn = SplitGD.ReinforcementGD(self.model, self.discount_factor, self.eligibility_decay_rate)
 
-    print(self.model.summary())
+    self.model.summary()
 
   def reset_eligibility(self):
     self.nn.eligibility_gradients = None

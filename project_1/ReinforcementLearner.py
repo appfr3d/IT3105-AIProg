@@ -32,7 +32,7 @@ class ReinforcementLearner():
     
   def fit(self):
     # Run all episodes
-    for episode in range(self.config.number_of_episodes):
+    for episode in tqdm(range(self.config.number_of_episodes), desc="Episode"):
       self.run_episode()
       #if self.sim_world_player.get_reward() == 1.0:
       #  self.actor.epsilon_decay()

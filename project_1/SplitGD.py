@@ -100,18 +100,20 @@ class ReinforcementGD(SplitGD):
 
     # We check this to avoid divide by 0 errors
     if loss < 0.000000000000001: 
-      # If loss is very, very small, gradient will also be very, very small, so we just map loss * and / operations to identity function as the very small gradient
+      # If loss is very, very small, gradient will also be very, very small, so we just map loss * and / operations to 
+      # identity function as the very small gradient
       # will not be able to impact eligibility gradient tracking
       loss = np.ones(shape=(1,), dtype="float32")[0] 
     
-    # Because we calculate the gradient already with td-error we do this for storing eliglibility gradients to get the formulas right
-    # (TD error at t=1 shouldn't impact the eligibility in t=2)
+    # Because we calculate the gradient already with td-error we do this for storing eliglibility gradients to 
+    # get the formulas right (TD error at t=1 shouldn't impact the eligibility in t=2)
     gradients = gradients/loss  
     
     if self.eligibility_gradients is None:
       self.eligibility_gradients = gradients
     else:
-      # as in slides
+      # As in slides but we also decay from previous action at this step
+      # ei←ei+∂V(st)/∂wi
       self.eligibility_gradients = self.eligibility_gradients*self.discount_factor*self.eligibility_decay_rate + gradients
 
     # So we need to get TD error from somewhere
@@ -129,7 +131,7 @@ class ReinforcementGD(SplitGD):
           feaset,tarset = gen_random_minibatch(train_ins,train_targs,mbs=mbs)
           loss = self.gen_loss(feaset,tarset,avg=False)
           gradients = tape.gradient(loss,params)
-          gradients = self.modify_gradients(gradients, loss)
+          gradients = self.modify_gradients(gradients, loss) # Pass loss in here
           self.model.optimizer.apply_gradients(zip(gradients,params))
       if verbosity > 0:
           self.end_of_epoch_action(train_ins,train_targs,val_ins,val_targs,epoch, verbosity=verbosity,callbacks=callbacks)

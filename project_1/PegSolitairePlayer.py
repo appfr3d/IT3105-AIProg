@@ -53,7 +53,7 @@ class PegSolitairePlayer(SimWorldPlayer):
     for move in moves:
       from_node = move["from"]
       to_node = move["to"]
-
+      # Maps from 2d board rep to 1d board rep
       from_index = from_node[0] * rows + from_node[1]
       to_index = to_node[0] * rows + to_node[1]
       actions.append((from_index, to_index))
@@ -67,6 +67,7 @@ class PegSolitairePlayer(SimWorldPlayer):
     """
 
     rows, columns = len(self.game.board), len(self.game.board[0])
+    # Maps from 1d board to 2d board
     from_node = (action[0] // columns, action[0] % rows)
     to_node = (action[1] // columns, action[1] % rows)
     action = {'from': from_node, 'to': to_node}
@@ -76,14 +77,20 @@ class PegSolitairePlayer(SimWorldPlayer):
       self.sim_world_displayer.display(self.frame_delay)
 
   def get_game_over(self):
-    return self.game.get_game_over()
+    return self.game.get_game_over() 
 
   def get_reward(self):
     if self.game.get_game_over() and self.game.get_win():
       return self.win
-    remaining_peg_heuristic = (float(self.board_size)*float(self.board_size)-float(self.get_remaining_pegs()))/(float(self.board_size)*float(self.board_size))
-    available_moves_heuristic = len(self.game.get_all_moves())/self.get_remaining_pegs()
-    return -self.base_loss - self.peg_loss * self.get_remaining_pegs() - self.peg_loss2 * remaining_peg_heuristic + available_moves_heuristic * self.moves_loss
+    
+    num_pegs_remaining = float(self.get_remaining_pegs())
+    # Remaining peg heuristic: Amount of remaining begs, scaled by board size
+    remaining_peg_heuristic = (float(self.board_size*self.board_size)-num_pegs_remaining)/(float(self.board_size*self.board_size))
+
+    # Available moves heuristic: Remaining moves/remaining pegs. A state with many possible moves per peg is more likely to have a successor state that is a victory state (because there are more moves)
+    available_moves_heuristic = len(self.game.get_all_moves())/num_pegs_remaining
+    
+    return -self.base_loss - self.peg_loss * num_pegs_remaining - self.peg_loss2 * remaining_peg_heuristic + available_moves_heuristic * self.moves_loss
     # #if self.game.get_game_over() and self.game.get_win():
     # #  return 1
     # return 0
@@ -92,4 +99,5 @@ class PegSolitairePlayer(SimWorldPlayer):
     return self.game.count_remaining_pieces()
 
   def force_display_frame(self):
+    # Make the sim_world_displayer display a frame
     self.sim_world_displayer.display(self.frame_delay)

@@ -329,6 +329,7 @@ class PegSolitaireBoard(HexBoard):
     :returns: index to a row in the connection matrix that corresponds to the node indexed in the 
     board matrix by from_position
     """
+    # These are different due to the fact that the boards are rotated different ways to fit into a square matrix
     if self.shape == ShapeType.DIAMOND:
       return from_position[0] + from_position[1]*len(self.board)
     elif self.shape == ShapeType.TRIANGLE:
@@ -339,6 +340,7 @@ class PegSolitaireBoard(HexBoard):
     :param conection_index: A node represented as a index into a connection matrix row
     :returns: index to board matrix corresponding to index in a connection matrix row
     """
+    # These are different due to the fact that the boards are rotated different ways to fit into a square matrix
     if self.shape == ShapeType.DIAMOND:
       board_index = (connection_index % len(self.board), connection_index // len(self.board))
       return board_index

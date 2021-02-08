@@ -78,7 +78,7 @@ class ConfigReader():
 
     f = open(os.path.join(CONFIG_DIR, file_name))
     for line in f:
-      if line.strip() == '':
+      if line.strip() == '' or line.startswith('#'):
         continue
 
       parts = line.strip().split(':')

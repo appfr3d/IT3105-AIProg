@@ -66,7 +66,8 @@ class PegSolitaireBoard(HexBoard):
 
       # We have a position index and a matrix index because we need to skip over some empty positions in the matrix, 
       # while still counting how many of the non-empty positions we've visited
-      position_index = 0 # position index is an index into a hypothethical 1D list with only valid positions
+      # position index is an index into a hypothethical 1D list with only valid positions
+      position_index = 0
 
       # We use this index to iterate through the matrix as if it was one dimensional by using // and %
       matrix_index = 0
@@ -111,7 +112,8 @@ class PegSolitaireBoard(HexBoard):
     for row_num in range(0, len(self.connection_matrix)):
       row = self.connection_matrix[row_num] 
       for col_num in range(0, len(row)):
-        if self.connection_matrix[row_num][col_num]:  # If there is a connection make a line
+        if self.connection_matrix[row_num][col_num]:  
+          # If there is a connection make a line
           # Remember that each entry in self.board contains a list of every connection to every other node, i.e it 
           # is n*n where n is len(self.board)
           from_row = row_num // len(self.board)

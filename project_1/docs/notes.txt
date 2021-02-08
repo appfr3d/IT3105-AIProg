@@ -1,0 +1,11 @@
+Notes about the program code:
+
+board:
+size x size matrix.
+Rotatet with the clock for diamond
+Rotated against the clock for triangle
+
+Connection matrix:
+size*size x size*size matrix
+for each node it is a one dimentional array of True/False depending if there is a connection or not
+

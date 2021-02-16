@@ -1,7 +1,7 @@
 from ConfigReader import ConfigReader
 from SimWorldDisplayer import ImageDisplay
-from PegSolitaireBoard import PegSolitaireBoard
-from SimWorld import ShapeType
+from pegSolitaireBoard import PegSolitaireBoard
+from simWorld import ShapeType
 from ReinforcementLearner import ReinforcementLearner
 from PegSolitairePlayer import PegSolitairePlayer
 import random

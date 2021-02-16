@@ -1,8 +1,8 @@
 from ConfigReader import ConfigReader
-from PegSolitaireBoard import PegSolitaireBoard
-from SimWorld import SimWorldPlayer
+from pegSolitaireBoard import PegSolitaireBoard
+from simWorld import SimWorldPlayer
 import Pieces
-from SimWorld import ShapeType
+from simWorld import ShapeType
 from SimWorldDisplayer import ImageDisplay
 
 

@@ -2,6 +2,9 @@ import math
 import tensorflow as tf
 import numpy as np
 
+
+# HERE WE BASED OUR CODE ON THE PROVIDED SPLITGD CODE GIVEN ON THE COURSE WEBSITE: 
+
 # ************** Split Gradient Descent (SplitGD) **********************************
 # This "exposes" the gradients during gradient descent by breaking the call to "fit" into two calls: tape.gradient
 # and optimizer.apply_gradients.  This enables intermediate modification of the gradients.  You can find many other
@@ -17,7 +20,7 @@ import numpy as np
 # split gradient descent into two parts using tf.GradientTape.  Many similar examples exist online, but, again, there
 # is no guarantee that they will work seamlessly with your own code.
 
-
+# Base class is basically intact, we sub-class it to make it fit our purposes
 class SplitGD():
     def __init__(self, keras_model):
         self.model = keras_model
@@ -84,7 +87,7 @@ class SplitGD():
         for cb in callbacks:    cb.on_epoch_end(epoch,cb_log)
 
 
-# Subclass of SplitGD to implement the modify_gradients function
+# Subclass of SplitGD to implement the modify_gradients function - here are our modifications/specific implementation
 class ReinforcementGD(SplitGD):
   def __init__(self, keras_model, discount_factor, eligibility_decay_rate):
     self.discount_factor = discount_factor

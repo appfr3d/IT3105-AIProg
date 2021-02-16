@@ -95,11 +95,11 @@ class HexBoard(SimWorldBase):
       for node_i in range(size*size):
         # check if node_i is in the empty triangle. 
         # No proof for this but some sketching suggested the formula, and the formula worked with empirical testing
-        triangle_check = node_i%size >= size - (size - node_i//size - 1)  
         # for many different sizes
         # == gives on diagonal to the right of main diagonal through matrix, greater gives the numbers on the rest of the row
         # basic intuition: size-node_i//size-1 gives how many of the nodes on a row in the board matrix are empty, 
         # and the rest checks if the node_i is in such an area
+        triangle_check = node_i%size >= size - (size - node_i//size - 1)  
         if triangle_check:  # If it is in the empty side there should be no connections so skip ahead
           continue
 

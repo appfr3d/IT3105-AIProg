@@ -38,6 +38,8 @@ class ReinforcementLearner():
       #  self.actor.epsilon_decay()
       self.sim_world_player.reset_state()
 
+      # Multiplicative
+      self.actor.epsilon *= self.config.epsilon_decay_rate
       #   self.actor.epsilon_decay()
       
       # Logaritmic
@@ -45,8 +47,8 @@ class ReinforcementLearner():
       # self.actor.epsilon = self.config.initial_epsilon * 10**(-(2*episode)/self.config.number_of_episodes)
 
       # Linear
-      #self.actor.epsilon = 1 - (episode/self.config.number_of_episodes)
-      self.actor.epsilon *= self.config.epsilon_decay_rate
+      # self.actor.epsilon = self.config.initial_epsilon * (1 - (episode/self.config.number_of_episodes))
+      
     
     self.display_log()
     
@@ -128,7 +130,7 @@ class ReinforcementLearner():
     plt.plot(self.peg_log)
     plt.xlabel("Episode")
     plt.ylabel("Pegs remaining")
-    # plt.show()
+    
     if isinstance(self.critic, NNCritic):
       critic_name = "NN"
     else:

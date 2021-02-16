@@ -48,6 +48,9 @@ class Actor:
     self.state_eligibility_map[state][action] *= self.discount_factor*self.eligibility_decay_rate
   
   def value_update(self, state, action, TD):
+    """
+    Updates the state value map with temporal differencing with eligibility traces 
+    """
     self.state_value_map[state][action] += self.learning_rate*TD*self.state_eligibility_map[state][action]
   
   def epsilon_decay(self):

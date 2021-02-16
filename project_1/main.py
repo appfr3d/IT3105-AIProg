@@ -16,6 +16,7 @@ learner.fit()
 print('Number of correct runs:', sum([1 for ele in learner.peg_log if ele == 1]))
 learner.display_game()
 
+
 # FOR TESTING:
 #res = []
 #for num in tqdm(range(0, 5), desc="Progress"):
@@ -39,19 +40,3 @@ learner.display_game()
 #  file.write(str(res) + " | " + str(avg) + " | " + str(std) + " \n " + text + "\n" + "--------------")
 
 
-'''
-# board = PegSolitaireBoard(config.empty_cells, config.board_type, config.size)
-img_display = ImageDisplay(board)
-img_display.display()
-
-moves = board.get_all_moves()
-
-
-print(moves)
-
-board.do_action(moves[0])
-
-img_display.display()
-
-# img_display.display()
-'''

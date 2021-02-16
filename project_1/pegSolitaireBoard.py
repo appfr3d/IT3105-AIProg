@@ -361,7 +361,6 @@ class PegSolitaireBoard(HexBoard):
 
     # Use distance between nodes to calculate position of node in middle
     middle_node = (middle_node[0]//2 + from_node[0], middle_node[1]//2 + from_node[1])
-    # print("From:", from_node, "To:", to_node, "Middle:", middle_node)
 
     # Find nodes from indexes
     from_node = self.board[from_node[0]][from_node[1]]

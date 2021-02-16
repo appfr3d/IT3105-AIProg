@@ -8,7 +8,7 @@ import SplitGD
 
 class Critic():
   """
-  abstract
+  abstract critic class
   """
   def eligibility_decay(self, state):
     pass
@@ -37,7 +37,7 @@ class TableCritic(Critic):
 
   def check_and_initialize_value(self, state):
     """
-    if the value is not in the state_value_map, initialize it wit a small random value
+    if the value is not in the state_value_map, initialize it with a small random value
     """
     if not state in self.state_value_map:
       self.state_value_map[state] = random.uniform(0, 0.1)
@@ -93,30 +93,10 @@ class NNCritic(Critic):
   def reset_eligibility(self):
     self.nn.eligibility_gradients = None
   
-  def generate_conv(self):
-    # NOT USED
-    opt = keras.optimizers.SGD
-    loss = keras.losses.MSE  # AS done in actor critic PDF
-    model = keras.models.Sequential()
-
-    # Add a Conv1D layer for each of the first specified dimentions
-    for dim in self.nn_dimentions[:-1]:
-      model.add(keras.layers.Conv1D(dim, kernel_size=3, strides=1, activation='relu'))
-      model.add(keras.layers.MaxPooling1D(pool_size=3, strides=3))
-    
-    # Add the last layer with softmax as the activation function
-    model.add(keras.layers.Dense(self.nn_dimentions[-1], activation='softmax')) 
-
-    # Compile and return the model
-    model.compile(optimizer=opt(lr=self.learning_rate), loss=loss, metrics=[keras.metrics.categorical_accuracy])
-    model.build(input_shape = self.input_size)
-    return model
-  
   def generate_fully_connected(self):
     """
     :returns a fully connected Sequential keras model with layers as defined in the config file
     """
-    # USED
     opt = keras.optimizers.SGD  # Stocastic Gradient Decent
     loss = keras.losses.MSE     # Mean Square Error
     model = keras.models.Sequential()

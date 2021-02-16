@@ -8,7 +8,7 @@ CONFIG_DIR = os.path.join(CURRENT_DIR, "configs")
 class ConfigReader():
   def __init__(self):
     """
-    Sets values to all of the config variables to make sure all the values are initialized in case something is missing¨
+    Sets values to all of the config variables to make sure all the values are initialized in case something is missing
     from the config.txt file. 
     Calls self.read_config to read the values in the config.txt file and update the config variables.
     Does a check to enshure that the empty cells are legal.
@@ -42,6 +42,7 @@ class ConfigReader():
 
     self.read_config()
 
+    # Ensures that the empty cells is inside bounds
     remove_empty_cells = []
     for i in range(len(self.empty_cells)):
       if self.empty_cells[i] >= self.size*self.size:
@@ -49,22 +50,7 @@ class ConfigReader():
         remove_empty_cells.append(self.empty_cells[i])
     for cell in remove_empty_cells:
       self.empty_cells.remove(cell)
-
-    # print(self.board_type)
-    # print(self.size)
-    # print(self.empty_cells)
-    # print(self.number_of_episodes)
-    # print(self.critic_type)
-    # print(self.critic_nn_dimentions)
-    # print(self.actor_learning_rate)
-    # print(self.critic_learning_rate)
-    # print(self.actor_eligibility_decay_rate)
-    # print(self.critic_eligibility_decay_rate)
-    # print(self.actor_discount_factor)
-    # print(self.critic_discount_factor)
-    # print(self.initial_epsilon)
-    # print(self.frame_delay)
-    # print(self.image_size)
+      
 
   def read_config(self):
     """

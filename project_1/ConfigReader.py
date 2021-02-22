@@ -1,5 +1,5 @@
 import os
-from simWorld import ShapeType
+from SimWorld import ShapeType
 from Critic import CriticType
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))

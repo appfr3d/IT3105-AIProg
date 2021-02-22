@@ -6,3 +6,6 @@ it3105
 
 # python shit
 __pycache__
+
+# finished projects
+*.zip

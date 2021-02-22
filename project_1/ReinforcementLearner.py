@@ -2,7 +2,7 @@ from PegSolitairePlayer import PegSolitairePlayer
 import ConfigReader
 from Actor import Actor
 from Critic import TableCritic, NNCritic, CriticType
-from simWorld import ShapeType
+from SimWorld import ShapeType
 from matplotlib import pyplot as plt
 import matplotlib
 from tqdm import tqdm

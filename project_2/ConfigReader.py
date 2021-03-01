@@ -18,6 +18,9 @@ class ConfigReader():
     """
     self.board_type = ShapeType.DIAMOND
     self.size = 4
+    self.M = 5
+
+    self.exploration_constant = 1
 
     self.number_of_episodes = 10
     self.rollouts_per_move = 10
@@ -42,14 +45,17 @@ class ConfigReader():
     """
     # Ask the use which config file to use
     config_files = [f for f in os.listdir(CONFIG_DIR) if f.startswith("config") and f.endswith(".txt")]
-    print('Which config file do you want to use?:')
-    for i in range(len(config_files)):
-      print('(' + str(i) + '): ' + config_files[i])
-    file_index = input('(0-'+str(len(config_files)-1)+'): ')
-    while not file_index.isdigit() or int(file_index) < 0 or int(file_index) > (len(config_files)-1):
+    if len(config_files) > 1:
+      print('Which config file do you want to use?:')
+      for i in range(len(config_files)):
+        print('(' + str(i) + '): ' + config_files[i])
       file_index = input('(0-'+str(len(config_files)-1)+'): ')
-  
-    file_name = config_files[int(file_index)]
+      while not file_index.isdigit() or int(file_index) < 0 or int(file_index) > (len(config_files)-1):
+        file_index = input('(0-'+str(len(config_files)-1)+'): ')
+
+      file_name = config_files[int(file_index)]
+    else:
+      file_name = config_files[0]
 
     f = open(os.path.join(CONFIG_DIR, file_name))
     for line in f:
@@ -64,6 +70,12 @@ class ConfigReader():
       
       if key == 'size':
         self.size = int(val)
+      
+      elif key == 'M':
+        self.M = int(val)
+      
+      elif key == 'exploration_constant':
+        self.exploration_constant = float(val)
 
       elif key == 'tournament_participants':
         self.tournament_participants = int(val)

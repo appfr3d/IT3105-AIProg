@@ -4,8 +4,8 @@ from Pieces import Peg, PegState
 from SimWorldDisplayer import Line, Circle, Layer
 from IllegalArgumentException import * 
 from PlayerEnum import Player
-class HexGameBoard(HexBoard):
 
+class HexGameBoard(HexBoard):
   def __init__(self, shape, size):
     """
     :param empty_position: A list of positions, counted as shown in /docs/Diamond_Connection_Matrix.png and
@@ -24,7 +24,7 @@ class HexGameBoard(HexBoard):
       for position in self.empty_positions: 
         row = position//self.size
         col = position%self.size
-        self.board[row][col].change_state(PegState.EMPTY)
+        self.board[row][col] = Peg((row, col), PegState.EMPTY)
 
   def display(self, image_size): 
     """
@@ -109,11 +109,82 @@ class HexGameBoard(HexBoard):
     return node_positions, node_layer
 
   def get_win(self):
+    """
+    :returns
+    """
     # TODO:
     # If connection from left column to right column with Player1 pieces return Player.Player1
     # if from top row to bottom row with player2 pieces return Player.Player2
     # else False
-    return False
+    # Check player1 win
+    player1_win = False
+    player2_win = False
+    visited_nodes = []
+    positions = [(num, 0) for num in range(self.size)]
+    while True:
+      visited_nodes += positions
+      player1_nodes = []
+      
+      for pos in positions:
+        if self.board[pos[0]][pos[1]].state == PegState.PLAYER1:
+          player1_nodes.append(pos)
+
+          # If there is a node at the opposite side
+          if pos[1] == self.size-1:
+            player1_win = True
+            break
+
+      # if there is no path
+      if len(player1_nodes) == 0:
+        break
+      
+      new_positions = []
+      for pos in player1_nodes:
+        moves = self.get_neighbours_and_directions(pos)
+        moves = [move[0] for move in moves]
+        moves = list(filter(lambda x: x not in visited_nodes, moves)) # Don't re visit visited nodes
+        moves = list(filter(lambda x: x not in new_positions, moves)) # Don't revisit already visited nodes in this expansion "turn"
+        new_positions += moves
+      
+      positions = new_positions
+
+    if not player1_win:
+      positions = [(0, num) for num in range(self.size)]
+      visited_nodes = []
+      visited_nodes += positions
+      while True:
+        visited_nodes += positions
+        player2_nodes = []
+        
+        for pos in positions:
+          if self.board[pos[0]][pos[1]].state == PegState.PLAYER2:
+            player2_nodes.append(pos)
+
+            # If there is a node at the opposite side
+            if pos[0] == self.size-1:
+              player2_win = True
+              break
+
+        # if there is no path
+        if len(player2_nodes) == 0:
+          break
+        
+        new_positions = []
+        for pos in player2_nodes:
+          moves = self.get_neighbours_and_directions(pos)
+          moves = [move[0] for move in moves]
+          moves = list(filter(lambda x: x not in visited_nodes, moves)) # Don't re visit visited nodes
+          moves = list(filter(lambda x: x not in new_positions, moves)) # Don't revisit already visited nodes in this expansion "turn"
+          new_positions += moves
+        
+        positions = new_positions
+
+    if player1_win:
+      return Player.PLAYER1
+    elif player2_win:
+      return Player.PLAYER2
+    else: 
+      return False
 
   def count_empty_positions(self):
     """
@@ -176,17 +247,24 @@ class HexGameBoard(HexBoard):
 
   def get_all_moves(self):
     """
-    Gets all legal moves for the current board state. (self.board). Returns a matrix of True/False where True means
+    Gets all legal moves for the current board state. (self.board). Returns a matrix of True/False where True means, and a list of positions
     that it is legal to place there
     """
-    
-    all_moves = []
+    # 2d matrix of true/false, true if something can be placed
+    legal_move_board = []
     for row in self.board:
       move_row = []
       for col in row:
-        move_row.append(True if col.PegState == PegState.EMPTY else False)
-      all_moves.append(move_row)
-    return all_moves
+        move_row.append(col.state == PegState.EMPTY)
+      legal_move_board.append(move_row)
+      
+    # every position where something can be placed (list of tuples)
+    possible_move_list = []
+    for row in range(self.size):
+      for col in range(self.size):
+        if legal_move_board[row][col] == True:
+          possible_move_list.append((row, col))
+    return legal_move_board, possible_move_list
   
   def board_to_connection_index(self, from_position):
     """
@@ -214,3 +292,8 @@ class HexGameBoard(HexBoard):
       self.board[pos[0]][pos[1]].player1_place_peg()
     else:  # Player2
       self.board[pos[0]][pos[1]].player2_place_peg()
+    
+  def set_board(self, board):
+    self.board = board
+    
+

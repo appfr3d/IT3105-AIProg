@@ -29,11 +29,6 @@ class ActorNN:
     loss = self.game_bridge.get_loss_metric()
 
     input_shape = self.game_bridge.get_input_shape()
-    
-    # model = tf.keras.models.Sequential() 
-    # model.add(tf.keras.Input(shape=(16,))) 
-    # model.add(tf.keras.layers.Dense(32, activation='relu'))
-
 
     model.add(keras.Input(shape=input_shape))
 
@@ -50,20 +45,16 @@ class ActorNN:
   def eval(self, param_tuple):
     # What is called by monte-carlo tree node
     inputs = self.game_bridge.translate_to_nn_input(param_tuple)
-
     
     output = self.model(inputs).numpy()
 
     return self.game_bridge.post_process(output, param_tuple)
   
   def fit(self, RBUF):
-    training_samples = self.game_bridge.process_training_samples(RBUF)
-    x = np.zeros((len(training_samples), len(training_samples[0][0][0])))
-    y = np.zeros((len(training_samples), len(training_samples[0][1])))
-
-    for num in range(len(training_samples)):
-      x[num] = training_samples[num][0][0]
-      y[num] = training_samples[num][1]
+    # dict with labels 'x', 'y'
+    training_samples_dict = self.game_bridge.process_training_samples(RBUF)
+    x = training_samples_dict['x']
+    y = training_samples_dict['y']
 
     self.model.fit(x=x, y=y)
 
@@ -108,6 +99,7 @@ class HexBoardNNBridge(GameBridge):
     # input = [0, 1, 0 , 0, ... ] binary version of board state
     # target is just distribution
     
+    
     def map_to_sample(RBUF_pair):
       board = RBUF_pair[0][0]
       moves = board.get_all_moves()
@@ -119,7 +111,15 @@ class HexBoardNNBridge(GameBridge):
       return (binary_input, distribution)
     
     # For now, just return every case
-    return [map_to_sample(RBUF_pair) for RBUF_pair in RBUF]
+    training_samples = [map_to_sample(RBUF_pair) for RBUF_pair in RBUF]
+    x = np.zeros((len(training_samples), len(training_samples[0][0][0])))
+    y = np.zeros((len(training_samples), len(training_samples[0][1])))
+
+    for num in range(len(training_samples)):
+      x[num] = training_samples[num][0][0]
+      y[num] = training_samples[num][1]
+    
+    return {'x':x, 'y':y}
   
   def get_input_shape(self): 
     return (2 + 2*self.config.size*self.config.size,)

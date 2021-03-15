@@ -6,32 +6,18 @@ from simWorld import ShapeType
 import random
 from tqdm import tqdm
 from PlayerEnum import Player
+from MonteCarloTreeNodes import HexGameBridge
+from ActorNN import HexBoardNNBridge
 
-
+# Read config file
 config = ConfigReader()
-# player = PegSolitairePlayer(config.empty_cells, config.board_type, config.size, config.image_size, config.frame_delay, config.win_reward, config.base_reward, config.peg_loss, config.peg_loss2, config.move_loss)
-board = HexGameBoard(config.board_type, config.size)
-learner = ReinforcementLearner(config)
 
+# Initialize bridges
+nn_bridge = HexBoardNNBridge(config)
+game_bridge = HexGameBridge(config)
+
+# Initialize the RL learner
+learner = ReinforcementLearner(config, nn_bridge, game_bridge)
+
+# Train the learner
 learner.fit()
-
-
-# learner.display_game()
-
-# img = ImageDisplay(board)
-# img.display(1000)
-# board.do_action(((0, 0), Player.PLAYER2))
-# img.display(1000)
-# board.do_action(((1, 0), Player.PLAYER2))
-# img.display(1000)
-# board.do_action(((2, 0), Player.PLAYER2))
-# img.display(1000)
-# board.do_action(((3, 0), Player.PLAYER2))
-# img.display(1000)
-
-
-# print(board.get_win())
-
-# learner = ReinforcementLearner(player, config)
-
-

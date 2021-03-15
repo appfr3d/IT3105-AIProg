@@ -9,18 +9,20 @@ from tqdm import tqdm
 from HexGameBoard import HexGameBoard
 
 from PlayerEnum import Player
-from MonteCarloTreeNodes import TreeNode, TreeState
+from MonteCarloTreeNodes import TreeNode, TreeState, HexGameBridge
 
 from tensorflow.keras.callbacks import TensorBoard
 
 class ReinforcementLearner():
-  def __init__(self, config: ConfigReader):
+  def __init__(self, config: ConfigReader, nn_bridge, game_bridge):
     """
-    :param actor: An actor agent
     :param config: A config object containing configuration information.
+    :param nn_bridge: game specific nn bridge
+    :param game_bridge: game spesific rule bridge
     """
-    self.actor = ActorNN(config, HexBoardNNBridge(config))
+    self.actor = ActorNN(config, nn_bridge)
     self.config = config
+    self.game_bridge = game_bridge
 
     
   def fit(self):
@@ -44,42 +46,31 @@ class ReinforcementLearner():
     
     
   def run_episode(self, display=False):
-    
     # 1: Make monte carlo tree
     # Get training samples
     # Do action 
     # If not end goto 1
     # If end do training, return
 
-    # REFACTOR
-    board = HexGameBoard(self.config.board_type, self.config.size)
+    game_state = self.game_bridge.initialize_new_state()
     if display:
-      sim_world_displayer = ImageDisplay(board)
-    tree_state = TreeState()
-    root_node = TreeNode(self.config, board, Player.PLAYER1, tree_state, self.actor, self.actor.epsilon)
+      sim_world_displayer = ImageDisplay(game_state)
+    tree_state = TreeState(self.game_bridge)
+    root_node = TreeNode(self.config, game_state, Player.PLAYER1, tree_state, self.actor, self.actor.epsilon, self.game_bridge)
     RBUF = []
 
-    while not root_node.hex_board.get_win():
+    while not self.game_bridge.get_win(root_node.state):
       RBUF_pair, next_root = root_node.monte_carlo_action()
       RBUF.append(RBUF_pair)
 
       root_node = next_root
       root_node.reset_parents() # Remove links to rest of tree so automatic memory management can do it's thing
       if display:
-        sim_world_displayer.set_sim_world(root_node.hex_board)
+        sim_world_displayer.set_sim_world(root_node.state)
         sim_world_displayer.display(self.config.frame_delay)
 
     # Train ANET on a random minibatch of cases from RBUF:
     self.actor.fit(RBUF)
-  
-  # def display_log(self):
-  #   plt.plot(self.peg_log)
-  #   plt.xlabel("Episode")
-  #   plt.ylabel("Pegs remaining")
-
-  #   plot_name = "graphs/graph.png"
-  #   plt.savefig(plot_name)
-  #   plt.show()
 
   def display_game(self):
     self.actor.epsilon = 0

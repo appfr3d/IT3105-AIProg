@@ -4,9 +4,11 @@ from Pieces import Peg, PegState
 from SimWorldDisplayer import Line, Circle, Layer
 from IllegalArgumentException import * 
 from PlayerEnum import Player
+import numpy as np
+import copy
 
 class HexGameBoard(HexBoard):
-  def __init__(self, shape, size):
+  def __init__(self, shape, size): 
     """
     :param empty_position: A list of positions, counted as shown in /docs/Diamond_Connection_Matrix.png and
     /docs/Triangle_Connection_Matrix.png
@@ -296,4 +298,5 @@ class HexGameBoard(HexBoard):
   def set_board(self, board):
     self.board = board
     
-
+  def get_state(self):
+    return copy.deepcopy(self.board)

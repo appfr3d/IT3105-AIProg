@@ -101,4 +101,6 @@ class ImageDisplay():
 
     # img.show()
     
+  def set_sim_world(self, sim_world):
+    self.sim_world = sim_world
       

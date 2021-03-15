@@ -2,6 +2,8 @@ import os
 from simWorld import ShapeType
 from ActivationFunctionType import ActivationFunctionType
 from OptimizerType import OptimizerType
+import tensorflow as tf
+from tensorflow import keras
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_DIR = os.path.join(CURRENT_DIR, "configs")
@@ -22,18 +24,22 @@ class ConfigReader():
 
     self.exploration_constant = 1
 
+    self.initial_epsilon = 0.75
+    self.epsilon_decay_rate = 0.99
+
     self.number_of_episodes = 10
     self.rollouts_per_move = 10
 
     self.actor_learning_rate = 0.1
     self.neurons_per_layer = [self.size*self.size]
-    self.activation_functions_per_layer = ["RELU"]
 
     self.tournament_participants = 10
     self.tournament_games = 10
 
     self.frame_delay = 1000
     self.image_size = 1000
+    self.optimizer = keras.optimizers.SGD
+    self.activation_func = 'relu'
 
     self.read_config()
 
@@ -76,6 +82,12 @@ class ConfigReader():
       
       elif key == 'exploration_constant':
         self.exploration_constant = float(val)
+      
+      elif key == 'initial_epsilon':
+        self.initial_epsilon = float(val)
+      
+      elif key == 'epsilon_decay_rate':
+        self.epsilon_decay_rate = float(val)
 
       elif key == 'tournament_participants':
         self.tournament_participants = int(val)
@@ -101,3 +113,23 @@ class ConfigReader():
       
       elif key == 'image_size':
         self.image_size = int(val)
+      
+      elif key == 'optimizer':
+        if val == 'ADAGRAD':
+          self.optimizer = keras.optimizers.Adagrad
+        elif val == 'SGD':
+          self.optimizer = keras.optimizers.SGD
+        elif val == 'RMSPROP':
+          self.optimizer = keras.optimizers.RMSprop
+        elif val == 'ADAM':
+          self.optimizer = keras.optimizers.Adam
+      
+      elif key == 'activation_func':
+        if val == 'LINEAR':
+          self.activation_func = 'linear'
+        elif val == 'RELU':
+          self.activation_func = 'relu'
+        elif val == 'SIGMOID':
+          self.activation_func = 'sigmoid'
+        elif val == 'TANH':
+          self.activation_func = 'tanh'

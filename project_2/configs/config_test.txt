@@ -3,11 +3,16 @@ size : 4
 M : 5
 exploration_constant : 1
 
-number_of_episodes : 10
+initial_epsilon : 0.75
+epsilon_decay_rate : 0.99
+
+number_of_episodes : 11
 rollouts_per_move : 10
 
 actor_learning_rate : 0.1
-neurons_per_layer : 16
+neurons_per_layer : 16, 22, 14
+optimizer : SGD
+activation_func : RELU
 
 tournament_participants : 10
 tournament_games : 10

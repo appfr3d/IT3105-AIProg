@@ -27,7 +27,8 @@ class TreeState:
     return self.hasher.hash(state)
   
   def add_node(self, node):
-    self.tree_states[self.state_hash(node)] = node
+    # Assume node is a monte carlo tree node 
+    self.tree_states[self.state_hash(node.state)] = node
   
   def get_node(self, state):
     return self.tree_states[self.state_hash(state)]
@@ -117,22 +118,24 @@ class HexGameBridge(GameBridge):
     return state.get_win()
 
   def hash(self, state):
-    if isinstance(state, HexGameBoard):
+    """
+    :param state: TreeNode state
+    """
+    """if isinstance(state, HexGameBoard):
       board = state.board
     elif isinstance(state, TreeNode):
       board = state.state.board
     else: 
-      board = state
+      board = state"""
+    # If we assume state is always a state instance (i.e. hexgameboard for hexgameboard)
+    board = state.board
 
     hash_val = ""
+    hash_elements = []
     for row in board:
       for col in row:
-        if col.state == PegState.PLAYER1:
-          hash_val += "1"
-        elif col.state == PegState.PLAYER2:
-          hash_val += "2"
-        else: 
-          hash_val += "0"
+        hash_elements.append(str(col.state))
+    hash_val = hash_val.join(hash_elements)
     return hash_val
 
   def get_all_nn_moves(self, state):
@@ -153,6 +156,7 @@ class TreeNode:
     self.epsilon = epsilon
     self.move_to_child = {}
     self.game_bridge = game_bridge
+    self.hash = self.game_bridge.hash(self.state)
     # Function that adds a (root, D) pair to RBUF
 
   def monte_carlo_action(self):
@@ -164,8 +168,8 @@ class TreeNode:
 
     for child_str in self.children:
       child = self.children[child_str]
-      move = self.move_to_child[self.state_hash(child.state)]
-      edge_visit_count = child.edge_visit_counts[self.state_hash(self.state)]
+      move = self.move_to_child[child.hash]
+      edge_visit_count = child.edge_visit_counts[self.hash]
       distribution[move[0][0] * self.config.size + move[0][1]] += edge_visit_count
       child_dist_map[move[0][0] * self.config.size + move[0][1]] = child
     
@@ -180,16 +184,16 @@ class TreeNode:
 
   def add_parent(self, new_parent):
     self.parents.append(new_parent)
-    self.edge_visit_counts[self.state_hash(new_parent)] = 0
+    self.edge_visit_counts[new_parent.hash] = 0
 
   def add_child(self, child, move):
-    self.children[self.state_hash(child)] = child
+    self.children[child.hash] = child
     
     # This may be useful for generating D distribution depending on the game
-    self.move_to_child[self.state_hash(child)] = move 
+    self.move_to_child[child.hash] = move 
     
   def increment_edge_visit_count(self, parent):
-    self.edge_visit_counts[self.state_hash(parent)] += 1
+    self.edge_visit_counts[parent.hash] += 1
 
   def rollout(self, force_rollout = False):
     # If there are no more possible children/ungenerated children
@@ -292,12 +296,12 @@ class TreeNode:
       return evaluation
   
   def get_q_value(self, parent):
-    if self.edge_visit_counts[self.state_hash(parent)] == 0:
+    if self.edge_visit_counts[parent.hash] == 0:
       return 0
-    return self.evaluation_value/self.edge_visit_counts[self.state_hash(parent)]
+    return self.evaluation_value/self.edge_visit_counts[parent.hash]
   
   def get_u_value(self, parent):
-    parent_hash = self.state_hash(parent)
+    parent_hash = parent.hash
     # self.visit_count must be > 0
     if self.visit_count == 0:
       return 0

@@ -13,9 +13,9 @@ class Piece:
 
 
 class PegState(Enum):
-    EMPTY = 0  # Last moved
-    PLAYER1 = 1  # Not removed but not last moved
-    PLAYER2 = 2  # Removed
+    EMPTY = 0     # Last moved
+    PLAYER1 = 1   # Not removed but not last moved
+    PLAYER2 = 2   # Removed
 
 class Peg(Piece):
   """

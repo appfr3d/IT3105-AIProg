@@ -5,6 +5,9 @@ from Pieces import PegState
 import numpy as np
 import time
 import random
+import os
+
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 class ActorNN:
   def __init__(self, config, game_bridge, model_path=None):
@@ -65,10 +68,10 @@ class ActorNN:
     self.model.fit(x=x, y=y, verbose=0)
   
   def save(self, episode):
-    t = str(time.time()).replace('.', '')
-    print('\nSaving model to: tournament_models/model_' + str(episode) + '_' + t + '\n')
-    self.model.save('tournament_models/model_' + str(episode) + '_' + t)
-
+    model_path = CURRENT_DIR + '/tournament_models/' + str(self.config.size) + '/model_' + str(episode).zfill(8)
+    # print('\nSaving model to: ' + model_path + '\n')
+    self.model.save(model_path)
+ 
   def load(self, path):
     self.model = keras.models.load_model(path)
 

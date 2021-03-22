@@ -16,7 +16,7 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Read config file
 config = ConfigReader()
-
+model_save_path = os.path.join(CURRENT_DIR + '/tournament_models/' + str(config.size) + '/')
 
 if config.run_type == 'train':
   # Initialize bridges
@@ -31,6 +31,7 @@ if config.run_type == 'train':
 elif config.run_type == 'tournament':
   game_bridge = HexGameBridge(config)
   nn_bridge = HexBoardNNBridge(config)
-  tourney = Tournament(config, os.path.join(CURRENT_DIR + '/tournament_models/'), game_bridge, nn_bridge)
+  
+  tourney = Tournament(config, model_save_path, game_bridge, nn_bridge)
   tourney.run_tourney()
   

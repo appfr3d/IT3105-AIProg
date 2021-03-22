@@ -1,4 +1,5 @@
 import os
+from tqdm import tqdm
 from ReinforcementLearner import ReinforcementLearner
 from ActorNN import HexBoardNNBridge
 from MonteCarloTreeNodes import HexGameBridge
@@ -29,7 +30,7 @@ class Tournament:
         agent_score_dict[name][name2] = 0
 
     # For each pair run a tournament
-    for name in agent_names:
+    for name in tqdm(agent_names, desc="Names"):
       for name2 in agent_names:
         
         if agent_score_dict[name][name2] != 0 or agent_score_dict[name2][name] != 0:
@@ -55,9 +56,13 @@ class Tournament:
       print("========================================================")
       print("Results for agent " + name)
       print("--------------------------------------------------------")
+      
+      total_wins = 0
       for name2 in agent_names:
         if name != name2:
           print("Result against " + name2 + " is: " + str(agent_score_dict[name][name2]) + " wins")
+          total_wins += agent_score_dict[name][name2]
+      print('Total number of wins: ' + str(total_wins))
       print("\n\n\n")
 
 
@@ -75,17 +80,19 @@ class Tournament:
     player_to_move = Player.PLAYER1
     state = self.game_bridge.initialize_new_state()
 
+    action_mode = self.config.tournament_action_mode
+
     while not self.game_bridge.get_win(state):
       if player_to_move == Player.PLAYER1:
         # player1
         moves = self.game_bridge.get_all_nn_moves(state)
-        action = agent1.eval((moves, player_to_move, self.game_bridge.get_state(state), 'stochastic'))
+        action = agent1.eval((moves, player_to_move, self.game_bridge.get_state(state), action_mode))
         state = self.game_bridge.execute_move(state, action)
         player_to_move = Player.PLAYER2
       else: 
         # player2
         moves = self.game_bridge.get_all_nn_moves(state)
-        action = agent2.eval((moves, player_to_move, self.game_bridge.get_state(state), 'stochastic'))
+        action = agent2.eval((moves, player_to_move, self.game_bridge.get_state(state), action_mode))
         state = self.game_bridge.execute_move(state, action)
         player_to_move = Player.PLAYER1
     winner = self.game_bridge.get_winner_data(state)

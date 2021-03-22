@@ -43,6 +43,8 @@ class ConfigReader():
     self.optimizer = keras.optimizers.SGD
     self.activation_func = 'relu'
 
+    self.tournament_action_mode = 'greedy'
+
     self.read_config()
 
       
@@ -120,6 +122,9 @@ class ConfigReader():
       
       elif key == 'image_size':
         self.image_size = int(val)
+      
+      elif key == 'tournament_action_mode':
+        self.tournament_action_mode = val
       
       elif key == 'optimizer':
         if val == 'ADAGRAD':

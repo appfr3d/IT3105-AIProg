@@ -254,18 +254,23 @@ class HexGameBoard(HexBoard):
     """
     # 2d matrix of true/false, true if something can be placed
     legal_move_board = []
-    for row in self.board:
+    possible_move_list = []
+    for row in range(self.size):
       move_row = []
-      for col in row:
-        move_row.append(col.state == PegState.EMPTY)
+      for col in range(self.size):
+        empty = self.board[row][col].state == PegState.EMPTY
+        move_row.append(empty)
+        if empty:
+          possible_move_list.append((row, col))
       legal_move_board.append(move_row)
       
-    # every position where something can be placed (list of tuples)
-    possible_move_list = []
+    # every position where something can be placed (list of tuples) (Combined with above)
+    """    possible_move_list = []
     for row in range(self.size):
       for col in range(self.size):
         if legal_move_board[row][col] == True:
           possible_move_list.append((row, col))
+    """    
     return legal_move_board, possible_move_list
   
   def board_to_connection_index(self, from_position):

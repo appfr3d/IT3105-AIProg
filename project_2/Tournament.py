@@ -42,12 +42,19 @@ class Tournament:
         else:
           player1wins = 0
           player2wins = 0
-          for num in range(games_per_series):
+          for num in range(games_per_series//2):
             winner = self.run_game(agent_dict[name], agent_dict[name2])
             if winner == Player.PLAYER1:
               player1wins += 1
             else:
               player2wins += 1
+          # Play with opposite player1/player2
+          for num in range(games_per_series//2):
+            winner = self.run_game(agent_dict[name2], agent_dict[name])
+            if winner == Player.PLAYER1:
+              player2wins += 1
+            else:
+              player1wins += 1
           agent_score_dict[name][name2] = player1wins
           agent_score_dict[name2][name] = player2wins
     

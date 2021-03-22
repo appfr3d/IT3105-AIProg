@@ -1,21 +1,19 @@
 from Pieces import PegState
 from HexGameBoard import HexGameBoard
 from PlayerEnum import Player
-import copy
 import math
 import numpy as np
 import random
-
-
+from Pieces import Peg
 
 class TreeState:
   def __init__(self, game_bridge):
     self.tree_states = {}
     self.hasher = game_bridge
-    
+
   def exists(self, state):
     return self.state_hash(state) in self.tree_states
-  
+
   def get_existing_parents(self, state):
     hashed_state = self.state_hash(state)
     if self.state_hash(state) in self.tree_states:
@@ -25,11 +23,11 @@ class TreeState:
 
   def state_hash(self, state):
     return self.hasher.hash(state)
-  
+
   def add_node(self, node):
     # Assume node is a monte carlo tree node 
     self.tree_states[self.state_hash(node.state)] = node
-  
+
   def get_node(self, state):
     return self.tree_states[self.state_hash(state)]
 
@@ -85,7 +83,7 @@ class HexGameBridge(GameBridge):
     return HexGameBoard(self.config.board_type, self.config.size)
   
   def get_state(self, state):
-    return state.get_state()
+    return state.board
 
   def get_max_possible_actions(self):
     return self.config.size * self.config.size
@@ -109,7 +107,18 @@ class HexGameBridge(GameBridge):
   
   def execute_move(self, state, move):
     new_state = self.initialize_new_state()
-    new_state.set_board(copy.deepcopy(state.board))
+    board = state.board
+    new_board = [[None for y in range(self.config.size)] for x in range(self.config.size)]
+    for row in range(self.config.size):
+      for col in range(self.config.size):
+        board_element = board[row][col]
+        if board_element.state == PegState.PLAYER1:
+          new_board[row][col] = Peg((row, col), PegState.PLAYER1)
+        elif board_element.state == PegState.PLAYER2:
+          new_board[row][col] = Peg((row, col), PegState.PLAYER2)
+        else:
+          new_board[row][col] = Peg((row, col), PegState.EMPTY)
+    new_state.set_board(new_board)
     new_state.do_action(move)
     return new_state
 
@@ -134,7 +143,7 @@ class HexGameBridge(GameBridge):
     hash_elements = []
     for row in board:
       for col in row:
-        hash_elements.append(str(col.state))
+        hash_elements.append(str(col.state.value))
     hash_val = hash_val.join(hash_elements)
     return hash_val
 
@@ -241,13 +250,17 @@ class TreeNode:
             best_tree_policy_value = child.get_q_value(self) - child.get_u_value(self)
         else:
           # From slides
-          if child.player_to_move == Player.PLAYER1:
+          if self.player_to_move == Player.PLAYER1:
             tree_policy_value = child.get_q_value(self) + child.get_u_value(self)
           else:
             tree_policy_value = child.get_q_value(self) - child.get_u_value(self) 
             
             
-          if tree_policy_value > best_tree_policy_value:
+          if self.player_to_move == Player.PLAYER1 and tree_policy_value > best_tree_policy_value:
+            best_tree_policy_value = tree_policy_value
+            best_child = child
+
+          elif self.player_to_move == Player.PLAYER2 and tree_policy_value < best_tree_policy_value:
             best_tree_policy_value = tree_policy_value
             best_child = child
       
@@ -297,18 +310,18 @@ class TreeNode:
   
   def get_q_value(self, parent):
     if self.edge_visit_counts[parent.hash] == 0:
-      return 0
+      return 0.5 # We assume that if a move has never been encountered, it will on average lead to 50% wins, and 50% losses.
     return self.evaluation_value/self.edge_visit_counts[parent.hash]
   
   def get_u_value(self, parent):
     parent_hash = parent.hash
     # self.visit_count must be > 0
     if self.visit_count == 0:
-      return 0
+      return self.config.exploration_constant  # Derivative when visit count is 0
     elif self.edge_visit_counts[parent_hash] == 0:
-      return self.config.exploration_constant * math.sqrt(math.log(self.visit_count))
+      return self.config.exploration_constant * math.sqrt(math.log(parent.visit_count))
     else:
-      return self.config.exploration_constant * math.sqrt(math.log(self.visit_count) / (1 + self.edge_visit_counts[parent_hash]))
+      return self.config.exploration_constant * math.sqrt(math.log(parent.visit_count) / (1 + self.edge_visit_counts[parent_hash]))
 
   def state_hash(self, state):
     return self.game_bridge.hash(state)

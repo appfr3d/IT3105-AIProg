@@ -10,7 +10,8 @@ from PlayerEnum import Player
 from MonteCarloTreeNodes import HexGameBridge
 from ActorNN import HexBoardNNBridge
 from Tournament import Tournament
-
+import cProfile
+import re
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -27,11 +28,13 @@ if config.run_type == 'train':
   learner = ReinforcementLearner(config, nn_bridge, game_bridge)
 
   # Train the learner
-  learner.fit()
+  cProfile.run('learner.fit()')
+
 elif config.run_type == 'tournament':
   game_bridge = HexGameBridge(config)
   nn_bridge = HexBoardNNBridge(config)
   
   tourney = Tournament(config, model_save_path, game_bridge, nn_bridge)
   tourney.run_tourney()
-  
+
+

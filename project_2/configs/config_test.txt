@@ -1,14 +1,16 @@
+# train or tournament
+run_type : train
 
 size : 4
-model_count : 5
+model_count : 10
 games_per_series : 25
 exploration_constant : 1
 
 initial_epsilon : 0.75
 epsilon_decay_rate : 0.99
 
-number_of_episodes : 50
-rollouts_per_move : 10
+number_of_episodes : 250
+rollouts_per_move : 25
 
 actor_learning_rate : 0.1
 neurons_per_layer : 16, 22, 14

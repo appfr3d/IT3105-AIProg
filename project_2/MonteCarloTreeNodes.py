@@ -124,7 +124,6 @@ class HexGameBridge(GameBridge):
     else: 
       board = state
 
-    
     hash_val = ""
     for row in board:
       for col in row:
@@ -262,7 +261,7 @@ class TreeNode:
       if random.random() >= self.epsilon:
         # policy
         moves = self.game_bridge.get_all_nn_moves(self.state)
-        action = self.default_policy.eval((moves, self.player_to_move, self.game_bridge.get_state(self.state), self))
+        action = self.default_policy.eval((moves, self.player_to_move, self.game_bridge.get_state(self.state), "greedy"))
       else:
         # random
         moves = self.game_bridge.get_all_tree_moves(self.state)

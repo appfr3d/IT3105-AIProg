@@ -4,16 +4,21 @@ from PlayerEnum import Player
 from Pieces import PegState
 import numpy as np
 import time
+import random
 
 class ActorNN:
-  def __init__(self, config, game_bridge):
+  def __init__(self, config, game_bridge, model_path=None):
     """
     :param config: Config file interpreter object
     :param game_bridge: A subclass of the generic GameBridge class that translates game representation into appropriate form for NN
     """
     self.config =  config
     self.game_bridge = game_bridge
-    self.model = self.generate_network()
+
+    if model_path == None:
+      self.model = self.generate_network()
+    else:
+      self.load(model_path)
     self.epsilon = config.initial_epsilon
     # k^2 output nodes
     # normalize output nodes to only actions that are valid (k^2 - q)
@@ -59,10 +64,10 @@ class ActorNN:
 
     self.model.fit(x=x, y=y, verbose=0)
   
-  def save(self):
+  def save(self, episode):
     t = str(time.time()).replace('.', '')
-    print('\nSaving model to: /tournament_models/model_' + t + '\n')
-    self.model.save('/tournament_models/model_' + t)
+    print('\nSaving model to: tournament_models/model_' + str(episode) + '_' + t + '\n')
+    self.model.save('tournament_models/model_' + str(episode) + '_' + t)
 
   def load(self, path):
     self.model = keras.models.load_model(path)
@@ -147,11 +152,13 @@ class HexBoardNNBridge(GameBridge):
     inputs = np.zeros(shape=(1, 2 + 2 * self.config.size*self.config.size))
     index = 0
     if player_to_move == Player.PLAYER1:
+      # 01 means that player1 can place peg at a given position
       inputs[0, index] = 0
       index += 1
       inputs[0, index] = 1
       index += 1
     else:
+      # 10 means that player2 can place peg at a given position
       inputs[0, index] = 1
       index += 1
       inputs[0, index] = 0
@@ -179,19 +186,44 @@ class HexBoardNNBridge(GameBridge):
     return inputs
   
   def post_process(self, nn_output, params): 
-    nn_output = nn_output.reshape((16,))
+    nn_output = nn_output.reshape((self.config.size*self.config.size,))
     moves = params[0]
     player_to_move = params[1]
     board_representation = params[2]
+    move_type = params[3]
     legal_moves = moves # 2D array with 1 for legal move 0 for not
 
     # Mask out non-legal moves
+    # crucially it just sets invalid 
     values = self.mask(nn_output, np.asarray(legal_moves).flatten())
 
-    # Normalize and return
-    # norm = np.linalg.norm(values) # Normalization is not necessary for just picking largest value as action choice
+    
+    if move_type == 'greedy':
+      index = list(values).index(max(values))
+    elif move_type == 'stochastic':    
+      # normalize
+      the_sum = np.sum(values)
+      for indx in range(len(values)):
+        values[indx] = values[indx]/the_sum
 
-    index = list(values).index(max(values))
+      values = np.insert(values, 0, [0.0])
+
+      # aggregate
+      for indx in range(1, len(values)):
+        values[indx] = values[indx] + values[indx-1]
+
+      randval = random.random()
+      index = 1
+
+      # Choose by finding which interval randval is in, stochastic choice
+      while True:
+        if randval >= values[index-1] and randval < values[index] and values[index-1] != values[index]:
+          # If it is in interval
+          # And the values are not equal <=> it is not one of the invalid moves that were masked out to 0
+          break
+        else:
+          index += 1
+      index -= 1 # because we added a 0 at start of the values list
     pos = (index // self.config.size, index % self.config.size)
 
     return (pos, player_to_move) # ((x, y), player_to_move)

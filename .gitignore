@@ -9,3 +9,6 @@ __pycache__
 
 # finished projects
 *.zip
+
+# models
+*/tournament_models/*

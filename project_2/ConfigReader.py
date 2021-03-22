@@ -18,6 +18,7 @@ class ConfigReader():
     Calls self.read_config to read the values in the config.txt file and update the config variables.
     Does a check to enshure that the empty cells are legal.
     """
+    self.run_type = 'train'
     self.board_type = ShapeType.DIAMOND
     self.size = 4
     self.model_count = 5
@@ -74,8 +75,10 @@ class ConfigReader():
       key = parts[0].strip()
       val = parts[1].strip()
 
-      
-      if key == 'size':
+      if key == 'run_type':
+        self.run_type = val
+
+      elif key == 'size':
         self.size = int(val)
       
       elif key == 'model_count':

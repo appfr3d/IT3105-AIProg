@@ -3,6 +3,8 @@ from ActorNN import ActorNN, HexBoardNNBridge
 from simWorld import ShapeType
 from SimWorldDisplayer import ImageDisplay
 from matplotlib import pyplot as plt
+
+import math
 import matplotlib
 from tqdm import tqdm
 
@@ -35,7 +37,11 @@ class ReinforcementLearner():
       # Multiplicative
       self.actor.epsilon *= self.config.epsilon_decay_rate
       #   self.actor.epsilon_decay()
-      
+
+      # If we are on save interval
+      if self.config.number_of_episodes % int(math.floor(self.config.number_of_episodes / self.config.model_count)) == 0:
+        self.actor.save()
+
       # Logaritmic
       # if self.peg_log[-1] == 1:
       # self.actor.epsilon = self.config.initial_epsilon * 10**(-(2*episode)/self.config.number_of_episodes)
@@ -78,3 +84,6 @@ class ReinforcementLearner():
     # self.sim_world_player.force_display_frame()
 
     self.run_episode(display=True)
+  
+  def load(self, path):
+    self.actor.load(path)

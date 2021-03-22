@@ -20,7 +20,8 @@ class ConfigReader():
     """
     self.board_type = ShapeType.DIAMOND
     self.size = 4
-    self.M = 5
+    self.model_count = 5
+    self.games_per_series = 25
 
     self.exploration_constant = 1
 
@@ -77,8 +78,11 @@ class ConfigReader():
       if key == 'size':
         self.size = int(val)
       
-      elif key == 'M':
-        self.M = int(val)
+      elif key == 'model_count':
+        self.model_count = int(val)
+
+      elif key == 'games_per_series':
+        self.games_per_series = int(val)
       
       elif key == 'exploration_constant':
         self.exploration_constant = float(val)

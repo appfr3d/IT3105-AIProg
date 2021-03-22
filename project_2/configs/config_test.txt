@@ -1,12 +1,13 @@
 
 size : 4
-M : 5
+model_count : 5
+games_per_series : 25
 exploration_constant : 1
 
 initial_epsilon : 0.75
 epsilon_decay_rate : 0.99
 
-number_of_episodes : 11
+number_of_episodes : 50
 rollouts_per_move : 10
 
 actor_learning_rate : 0.1

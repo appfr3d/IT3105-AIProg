@@ -3,6 +3,7 @@ import tensorflow as tf
 from PlayerEnum import Player
 from Pieces import PegState
 import numpy as np
+import time
 
 class ActorNN:
   def __init__(self, config, game_bridge):
@@ -57,6 +58,12 @@ class ActorNN:
     y = training_samples_dict['y']
 
     self.model.fit(x=x, y=y)
+  
+  def save(self):
+    self.model.save('/tournament_models/model_' + str(time.time()))
+
+  def load(self, path):
+    self.model = keras.load(path)
 
 
 class GameBridge:
@@ -193,4 +200,5 @@ class HexBoardNNBridge(GameBridge):
     """
     return np.multiply(values, mask_values)
 
+  
     

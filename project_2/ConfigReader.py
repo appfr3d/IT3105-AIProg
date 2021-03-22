@@ -103,7 +103,7 @@ class ConfigReader():
         self.number_of_episodes = int(val)
 
       elif key == 'rollouts_per_move':
-        self.number_of_episodes = int(val)
+        self.rollouts_per_move = int(val)
 
       elif key == 'neurons_per_layer':
         self.neurons_per_layer = [int(d) for d in val.split(',')]

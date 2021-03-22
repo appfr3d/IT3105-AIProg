@@ -57,13 +57,15 @@ class ActorNN:
     x = training_samples_dict['x']
     y = training_samples_dict['y']
 
-    self.model.fit(x=x, y=y)
+    self.model.fit(x=x, y=y, verbose=0)
   
   def save(self):
-    self.model.save('/tournament_models/model_' + str(time.time()))
+    t = str(time.time()).replace('.', '')
+    print('\nSaving model to: /tournament_models/model_' + t + '\n')
+    self.model.save('/tournament_models/model_' + t)
 
   def load(self, path):
-    self.model = keras.load(path)
+    self.model = keras.models.load_model(path)
 
 
 class GameBridge:

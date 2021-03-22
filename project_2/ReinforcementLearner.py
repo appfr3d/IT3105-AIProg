@@ -30,7 +30,7 @@ class ReinforcementLearner():
   def fit(self):
     # Run all episodes
     for episode in tqdm(range(self.config.number_of_episodes), desc="Episode"):
-      self.run_episode(display=episode%5==0)
+      self.run_episode(display=False)
       #if self.sim_world_player.get_reward() == 1.0:
       #  self.actor.epsilon_decay()
 
@@ -39,7 +39,7 @@ class ReinforcementLearner():
       #   self.actor.epsilon_decay()
 
       # If we are on save interval
-      if self.config.number_of_episodes % int(math.floor(self.config.number_of_episodes / self.config.model_count)) == 0:
+      if episode % int(math.floor(self.config.number_of_episodes / self.config.model_count)) == 0:
         self.actor.save()
 
       # Logaritmic

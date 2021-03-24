@@ -181,11 +181,11 @@ class TreeNode:
       edge_visit_count = child.edge_visit_counts[self.hash]
       distribution[move[0][0] * self.config.size + move[0][1]] += edge_visit_count
       child_dist_map[move[0][0] * self.config.size + move[0][1]] = child
-    
-    norm = np.linalg.norm(distribution)
-    distribution = np.asarray(distribution)/norm
+
+    whole_sum = sum(distribution)
+    distribution = np.asarray(distribution)/whole_sum
     RBUF_pair = ((self.state, self.player_to_move), distribution)
-    
+
     best_move = list(distribution).index(max(distribution))
     next_root = child_dist_map[best_move]
 

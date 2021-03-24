@@ -3,14 +3,14 @@ run_type : train
 
 size : 4
 model_count : 10
-games_per_series : 100
+games_per_series : 50
 exploration_constant : 3.0
 
-initial_epsilon : 0.5
-epsilon_decay_rate : 1.0
+initial_epsilon : 1.0
+epsilon_decay_rate : 0.99
 
-number_of_episodes : 10
-rollouts_per_move : 200
+number_of_episodes : 201
+rollouts_per_move : 400
 
 actor_learning_rate : 0.00005
 neurons_per_layer : 25, 12, 25
@@ -25,7 +25,7 @@ tournament_participants : 10
 tournament_games : 10
 
 # greedy or stochastic
-tournament_action_mode : stochastic
+tournament_action_mode : greedy
 
 
 frame_delay : 1000

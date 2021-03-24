@@ -42,9 +42,11 @@ class ActorNN:
     model.add(keras.Input(shape=input_shape))
 
     # Add fully connected layers to the model
+    # Consider conv2d if regular don't work
     for dim in self.config.neurons_per_layer: 
       model.add(keras.layers.Dense(dim, activation=self.config.activation_func))
 
+    # Consider sigmoid here
     model.add(self.game_bridge.get_output_layer())
 
     model.compile(optimizer=opt(lr=self.config.actor_learning_rate), loss=loss, metrics=[loss])

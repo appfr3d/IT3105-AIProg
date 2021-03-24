@@ -28,7 +28,7 @@ if config.run_type == 'train':
   learner = ReinforcementLearner(config, nn_bridge, game_bridge)
 
   # Train the learner
-  cProfile.run('learner.fit()')
+  learner.fit()
 
 elif config.run_type == 'tournament':
   game_bridge = HexGameBridge(config)

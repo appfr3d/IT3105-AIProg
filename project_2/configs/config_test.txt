@@ -1,5 +1,5 @@
 # train or tournament
-run_type : train
+run_type : tournament
 
 size : 4
 model_count : 10
@@ -9,8 +9,8 @@ exploration_constant : 3.0
 initial_epsilon : 1.0
 epsilon_decay_rate : 0.99
 
-number_of_episodes : 201
-rollouts_per_move : 400
+number_of_episodes : 200
+rollouts_per_move : 200
 
 actor_learning_rate : 0.00005
 neurons_per_layer : 25, 12, 25

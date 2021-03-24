@@ -147,7 +147,14 @@ class HexBoardNNBridge(GameBridge):
     return keras.layers.Dense(self.config.size*self.config.size, activation=tf.nn.softmax)
   
   def get_loss_metric(self):
-    return keras.losses.categorical_crossentropy
+    # Why mse?
+    # 1. Keras default cross entropy is for one-hot vector targets (as pointed out in email from Keith)
+    # 2. Keras complains when loading models using the pre-built versions of Kullback Leibner Divergence that
+    # the metric is not specified properly... So if MSE works well it would be beneficial to not bother with
+    # fixing that...
+    return keras.losses.mse
+
+
   
   def translate_to_nn_input(self, params):
     moves = params[0] # hex_board.get_all_moves()

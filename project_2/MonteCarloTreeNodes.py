@@ -319,9 +319,9 @@ class TreeNode:
     if self.visit_count == 0:
       return self.config.exploration_constant  # Derivative when visit count is 0
     elif self.edge_visit_counts[parent_hash] == 0:
-      return self.config.exploration_constant * math.sqrt(math.log(parent.visit_count))
+      return self.config.exploration_constant * math.sqrt(math.log(self.visit_count))
     else:
-      return self.config.exploration_constant * math.sqrt(math.log(parent.visit_count) / (1 + self.edge_visit_counts[parent_hash]))
+      return self.config.exploration_constant * math.sqrt(math.log(self.visit_count) / (1 + self.edge_visit_counts[parent_hash]))
 
   def state_hash(self, state):
     return self.game_bridge.hash(state)

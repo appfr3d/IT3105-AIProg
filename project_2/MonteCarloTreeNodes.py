@@ -93,7 +93,7 @@ class HexGameBridge(GameBridge):
     if winner == Player.PLAYER1:
       to_return = 1
     elif winner == Player.PLAYER2:
-      to_return = -1
+      to_return = 0
     else:
       # should not happen but for debugging
       raise Exception("No more moves but no winner yet, critical game logic failure") 
@@ -204,21 +204,22 @@ class TreeNode:
   def increment_edge_visit_count(self, parent):
     self.edge_visit_counts[parent.hash] += 1
 
-  def rollout(self, force_rollout = False):
+  def rollout(self, force_rollout=False):
     # If there are no more possible children/ungenerated children
     if self.game_bridge.get_move_count(self.state) == 0:
       # IF there are no more moves there exists a winner
       return self.game_bridge.get_winner_data(self.state)
-      
+
     # If we've started rolling out, continue rolling out
-    # If you are the root note, but do not have any children, then expand and generate 
+    # If you are the root note, but do not have any children, then expand and generate
     # your children (i.e. no parents, no children)
     # But if you are not a root node ( you have a parent) and do not have children then you should go over to Rollout
-    if not force_rollout and ((len(self.children) != 0 or len(self.parents) == 0)):
+    if not force_rollout:
+      leaf_node = len(self.children) == 0
       if len(self.children) != self.game_bridge.get_move_count(self.state):
         # Generate nodes
-        moves = self.game_bridge.get_all_tree_moves (self.state)
-        for move in moves: 
+        moves = self.game_bridge.get_all_tree_moves(self.state)
+        for move in moves:
           new_state = self.game_bridge.execute_move(self.state, (move, self.player_to_move))
           # If new child node does not exist in tree
           if not self.tree_state.exists(new_state):
@@ -226,7 +227,8 @@ class TreeNode:
             player_to_move = Player.PLAYER1
             if self.player_to_move == Player.PLAYER1:
               player_to_move = Player.PLAYER2
-            new_monte_carlo_node = TreeNode(self.config, new_state, player_to_move, self.tree_state, self.default_policy, self.epsilon, self.game_bridge)
+            new_monte_carlo_node = TreeNode(self.config, new_state, player_to_move, self.tree_state,
+                                            self.default_policy, self.epsilon, self.game_bridge)
             new_monte_carlo_node.add_parent(self)
             self.add_child(new_monte_carlo_node, (move, self.player_to_move))
             self.tree_state.add_node(new_monte_carlo_node)
@@ -234,56 +236,43 @@ class TreeNode:
           elif self.state_hash(new_state) not in self.children.keys():
             self.add_child(self.tree_state.get_node(new_state), (move, self.player_to_move))
             self.children[self.state_hash(new_state)].add_parent(self)
-      
+
       # Select next node using tree policy
-      best_child = None
-      best_tree_policy_value = 0
-      for child_hash in self.children:
-        child = self.children[child_hash]
-        if best_child == None:
-          best_child = child
-          
-          # From slides
-          if self.player_to_move == Player.PLAYER1:
-            best_tree_policy_value = child.get_q_value(self) + child.get_u_value(self)
-          else:
-            best_tree_policy_value = child.get_q_value(self) - child.get_u_value(self)
-        else:
-          # From slides
-          if self.player_to_move == Player.PLAYER1:
-            tree_policy_value = child.get_q_value(self) + child.get_u_value(self)
-          else:
-            tree_policy_value = child.get_q_value(self) - child.get_u_value(self) 
-            
-          # Max
-          if self.player_to_move == Player.PLAYER1 and tree_policy_value > best_tree_policy_value:
-            best_tree_policy_value = tree_policy_value
-            best_child = child
-          # Min
-          elif self.player_to_move == Player.PLAYER2 and tree_policy_value < best_tree_policy_value:
-            best_tree_policy_value = tree_policy_value
-            best_child = child
-          # If equal random pick on coinflip to avoid favoring nodes that comes first in generation order
-          elif tree_policy_value == best_tree_policy_value:
-            randval = random.random()
-            if randval >= 0.5:
-              best_child = child
-      
+      tree_policy_values = []
+      children = []
+      if self.player_to_move == Player.PLAYER1:
+        for child_hash in self.children:
+          child = self.children[child_hash]
+          children.append(child)
+          tree_policy_values.append(child.get_q_value(self) + child.get_u_value(self))
+        child_index = tree_policy_values.index(max(tree_policy_values))
+      else:
+        for child_hash in self.children:
+          child = self.children[child_hash]
+          children.append(child)
+          tree_policy_values.append(child.get_q_value(self) - child.get_u_value(self))
+        child_index = tree_policy_values.index(min(tree_policy_values))
+
+      best_child = children[child_index]
       # Move to next child
       best_child.increment_edge_visit_count(self)
-      evaluation = best_child.rollout()
+      if leaf_node:
+        evaluation = best_child.rollout(force_rollout=True)
+      else:
+        evaluation = best_child.rollout()
       self.evaluation_value += evaluation
       self.visit_count += 1
       return evaluation
 
-    else: 
+    else:
       # rollout policy
-      
+
       # e-greedy
       if random.random() >= self.epsilon:
         # policy
         moves = self.game_bridge.get_all_nn_moves(self.state)
-        action = self.default_policy.eval((moves, self.player_to_move, self.game_bridge.get_state(self.state), "greedy"))
+        action = self.default_policy.eval(
+          (moves, self.player_to_move, self.game_bridge.get_state(self.state), "greedy"))
       else:
         # random
         moves = self.game_bridge.get_all_tree_moves(self.state)
@@ -291,43 +280,27 @@ class TreeNode:
         action = (action, self.player_to_move)
 
       new_state = self.game_bridge.execute_move(self.state, action)
-      
-      """# If new child node does not exist in tree
-      if not self.tree_state.exists(new_state):
-        player_to_move = Player.PLAYER1
-        if self.player_to_move == Player.PLAYER1:
-          player_to_move = Player.PLAYER2
-        new_monte_carlo_node = TreeNode(self.config, new_state, player_to_move, self.tree_state, self.default_policy, self.epsilon, self.game_bridge)
-        new_monte_carlo_node.add_parent(self)
-        self.add_child(new_monte_carlo_node, action)
-        self.tree_state.add_node(new_monte_carlo_node)
-      # If new child node exists in tree but is not added as a child of this node
-      elif self.state_hash(new_state) not in self.children.keys():
-        self.add_child(self.tree_state.get_node(new_state), action)
-        self.children[self.state_hash(new_state)].add_parent(self)"""
 
       player_to_move = Player.PLAYER1
       if self.player_to_move == Player.PLAYER1:
         player_to_move = Player.PLAYER2
-      new_monte_carlo_node = TreeNode(self.config, new_state, player_to_move, self.tree_state, self.default_policy,
-                                      self.epsilon, self.game_bridge)
+      child = TreeNode(self.config, new_state, player_to_move, self.tree_state, self.default_policy, self.epsilon,
+                       self.game_bridge)
 
-      child = new_monte_carlo_node
-      #child.increment_edge_visit_count(self)
-      evaluation = child.rollout(force_rollout = True)
+      evaluation = child.rollout(force_rollout=True)
       self.evaluation_value += evaluation
       self.visit_count += 1
       return evaluation
   
   def get_q_value(self, parent):
     if self.edge_visit_counts[parent.hash] == 0:
-      return 0 # We assume that if a move has never been encountered, it will on average lead to 50% wins, and 50% losses.
+      return 0.5 # We assume that if a move has never been encountered, it will on average lead to 50% wins, and 50% losses.
     return self.evaluation_value/self.edge_visit_counts[parent.hash]
   
   def get_u_value(self, parent):
     parent_hash = parent.hash
     # self.visit_count must be > 0
-    if self.visit_count == 0:
+    if parent.visit_count == 0:
       return self.config.exploration_constant  # Derivative when visit count is 0
     elif self.edge_visit_counts[parent_hash] == 0:
       return self.config.exploration_constant * math.sqrt(math.log(parent.visit_count))

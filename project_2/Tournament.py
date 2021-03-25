@@ -43,7 +43,7 @@ class Tournament:
           player1wins = 0
           player2wins = 0
           for num in range(games_per_series):
-            winner = self.run_game(agent_dict[name], agent_dict[name2])
+            winner = self.run_game(agent_dict[name], agent_dict[name2], num)
             if winner == Player.PLAYER1:
               player1wins += 1
             else:
@@ -66,7 +66,7 @@ class Tournament:
       print("\n\n\n")
 
 
-  def run_game(self, agent1, agent2):
+  def run_game(self, agent1, agent2, game_num):
     """
     init hex board
 
@@ -77,7 +77,11 @@ class Tournament:
     
     return winner
     """
-    player_to_move = Player.PLAYER1
+    if game_num % 2 == 0:
+      player_to_move = Player.PLAYER1
+    else:
+      player_to_move = Player.PLAYER2
+      
     state = self.game_bridge.initialize_new_state()
 
     action_mode = self.config.tournament_action_mode

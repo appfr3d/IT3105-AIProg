@@ -40,7 +40,7 @@ class ReinforcementLearner():
       #   self.actor.epsilon_decay()
 
       # If we are on save interval
-      if episode % int(math.floor(self.config.number_of_episodes / self.config.model_count)) == 0:
+      if (episode + 1) % int(math.floor(self.config.number_of_episodes / self.config.model_count)) == 0:
         self.actor.save(episode)
 
       # Logaritmic

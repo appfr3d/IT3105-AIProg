@@ -1,19 +1,19 @@
 # train or tournament
 run_type : tournament
 
-size : 6
+size : 5
 model_count : 10
 games_per_series : 25
 exploration_constant : 1
 
-initial_epsilon : 0.75
+initial_epsilon : 0.8
 epsilon_decay_rate : 0.99
 
-number_of_episodes : 10
-rollouts_per_move : 5
+number_of_episodes : 1001
+rollouts_per_move : 500
 
-actor_learning_rate : 0.1
-neurons_per_layer : 16, 22, 14
+actor_learning_rate : 0.01
+neurons_per_layer : 25, 22, 14
 
 # ADAGRAD, SGD, RMSPROP, ADAM
 optimizer : SGD
@@ -26,7 +26,6 @@ tournament_games : 10
 
 # greedy or stochastic
 tournament_action_mode : stochastic
-
 
 frame_delay : 1000
 image_size : 1000

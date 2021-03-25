@@ -69,10 +69,13 @@ class ActorNN:
 
     self.model.fit(x=x, y=y, verbose=0)
   
-  def save(self, episode):
-    model_path = CURRENT_DIR + '/tournament_models/' + str(self.config.size) + '/model_' + str(episode).zfill(8)
+  def save(self, save_path, episode):
+    if save_path == None:
+      model_path = CURRENT_DIR + '/tournament_models/' + str(self.config.size) + '/model_' + str(episode).zfill(8)
+      self.model.save(model_path)
     # print('\nSaving model to: ' + model_path + '\n')
-    self.model.save(model_path)
+    else:
+      self.model.save(save_path + '/' + str(episode).zfill(8))
  
   def load(self, path):
     self.model = keras.models.load_model(path)

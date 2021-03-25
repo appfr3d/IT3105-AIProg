@@ -12,11 +12,11 @@ epsilon_decay_rate : 0.99
 number_of_episodes : 400
 rollouts_per_move : 100
 
-actor_learning_rate : 0.01
-neurons_per_layer : 25, 12, 25
+actor_learning_rate : 0.001
+neurons_per_layer : 30, 25
 
 # ADAGRAD, SGD, RMSPROP, ADAM
-optimizer : ADAM
+optimizer : ADAGRAD
 
 # LINEAR, RELU, SIGMOID, TANH
 activation_func : RELU

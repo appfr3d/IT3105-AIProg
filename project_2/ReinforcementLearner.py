@@ -16,7 +16,7 @@ from MonteCarloTreeNodes import TreeNode, TreeState, HexGameBridge
 from tensorflow.keras.callbacks import TensorBoard
 
 class ReinforcementLearner():
-  def __init__(self, config: ConfigReader, nn_bridge, game_bridge, model_path=None):
+  def __init__(self, config: ConfigReader, nn_bridge, game_bridge, save_path=None, model_path=None):
     """
     :param config: A config object containing configuration information.
     :param nn_bridge: game specific nn bridge
@@ -26,6 +26,7 @@ class ReinforcementLearner():
     self.actor = ActorNN(config, nn_bridge, model_path)
     self.config = config
     self.game_bridge = game_bridge
+    self.save_path = save_path
 
     
   def fit(self):
@@ -37,11 +38,11 @@ class ReinforcementLearner():
 
       # Multiplicative
       self.actor.epsilon *= self.config.epsilon_decay_rate
-      #   self.actor.epsilon_decay()
+      # self.actor.epsilon_decay()
 
       # If we are on save interval
       if episode % int(math.floor(self.config.number_of_episodes / self.config.model_count)) == 0:
-        self.actor.save(episode)
+        self.actor.save(self.save_path, episode)
 
       # Logaritmic
       # if self.peg_log[-1] == 1:

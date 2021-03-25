@@ -13,7 +13,7 @@ number_of_episodes : 10001
 rollouts_per_move : 200
 
 actor_learning_rate : 0.1
-neurons_per_layer : 100, 100, 100
+neurons_per_layer : 16, 16, 16, 16, 16, 16, 16
 
 # ADAGRAD, SGD, RMSPROP, ADAM
 optimizer : SGD

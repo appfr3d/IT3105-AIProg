@@ -67,7 +67,7 @@ class ActorNN:
     x = training_samples_dict['x']
     y = training_samples_dict['y']
 
-    self.model.fit(x=x, y=y, verbose=1, epochs=100)
+    self.model.fit(x=x, y=y, verbose=0, epochs=1)
   
   def save(self, episode):
     model_path = CURRENT_DIR + '/tournament_models/' + str(self.config.size) + '/model_' + str(episode).zfill(8)
@@ -75,7 +75,7 @@ class ActorNN:
     self.model.save(model_path)
  
   def load(self, path):
-    self.model = keras.models.load_model(path)
+    self.model = keras.models.load_model(path, compile=False)
 
 
 class GameBridge:
@@ -147,12 +147,7 @@ class HexBoardNNBridge(GameBridge):
     return keras.layers.Dense(self.config.size*self.config.size, activation=tf.nn.softmax)
   
   def get_loss_metric(self):
-    # Why mse?
-    # 1. Keras default cross entropy is for one-hot vector targets (as pointed out in email from Keith)
-    # 2. Keras complains when loading models using the pre-built versions of Kullback Leibner Divergence that
-    # the metric is not specified properly... So if MSE works well it would be beneficial to not bother with
-    # fixing that...
-    return keras.losses.mse
+    return keras.losses.KLD
 
 
   

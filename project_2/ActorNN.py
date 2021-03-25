@@ -67,7 +67,7 @@ class ActorNN:
     x = training_samples_dict['x']
     y = training_samples_dict['y']
 
-    self.model.fit(x=x, y=y, verbose=0)
+    self.model.fit(x=x, y=y, verbose=1, epochs=100)
   
   def save(self, episode):
     model_path = CURRENT_DIR + '/tournament_models/' + str(self.config.size) + '/model_' + str(episode).zfill(8)

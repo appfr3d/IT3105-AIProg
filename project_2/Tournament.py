@@ -86,7 +86,6 @@ class Tournament:
     """
     player_to_move = Player.PLAYER1
     state = self.game_bridge.initialize_new_state()
-
     action_mode = self.config.tournament_action_mode
     while not self.game_bridge.get_win(state):
       if player_to_move == Player.PLAYER1:

@@ -1,22 +1,22 @@
 # train or tournament
-run_type : tournament
+run_type : train
 
 size : 4
 model_count : 10
-games_per_series : 50
-exploration_constant : 3.0
+games_per_series : 100
+exploration_constant : 1.0
 
-initial_epsilon : 1.0
-epsilon_decay_rate : 0.99
+initial_epsilon : 0.0
+epsilon_decay_rate : 0.98
 
-number_of_episodes : 200
-rollouts_per_move : 200
+number_of_episodes : 11
+rollouts_per_move : 1000
 
-actor_learning_rate : 0.00005
-neurons_per_layer : 25, 12, 25
+actor_learning_rate : 0.1
+neurons_per_layer : 100, 100, 100
 
 # ADAGRAD, SGD, RMSPROP, ADAM
-optimizer : ADAM
+optimizer : SGD
 
 # LINEAR, RELU, SIGMOID, TANH
 activation_func : RELU

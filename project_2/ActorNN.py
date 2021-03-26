@@ -67,7 +67,7 @@ class ActorNN:
     x = training_samples_dict['x']
     y = training_samples_dict['y']
 
-    self.model.fit(x=x, y=y, verbose=0, epochs=1)
+    self.model.fit(x=x, y=y, verbose=0, epochs=100)
   
   def save(self, episode):
     model_path = CURRENT_DIR + '/tournament_models/' + str(self.config.size) + '/model_' + str(episode).zfill(8)
@@ -231,6 +231,14 @@ class HexBoardNNBridge(GameBridge):
         else:
           index += 1
       index -= 1 # because we added a 0 at start of the values list
+    elif move_type == 'e-greedy':
+      e = self.config.initial_epsilon # FOR NOW assumes constant epsilon
+      randval = random.random()
+      if randval < e:
+        index = random.randint(0, values.shape[0]-1)
+      else:
+        index = list(values).index(max(values))
+
     pos = (index // self.config.size, index % self.config.size)
 
     return (pos, player_to_move) # ((x, y), player_to_move)

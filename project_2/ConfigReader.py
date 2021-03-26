@@ -145,3 +145,6 @@ class ConfigReader():
           self.activation_func = 'sigmoid'
         elif val == 'TANH':
           self.activation_func = 'tanh'
+
+      elif key == 'rbuf_size':
+        self.rbuf_size = int(val)

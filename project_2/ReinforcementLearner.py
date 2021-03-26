@@ -52,7 +52,7 @@ class ReinforcementLearner():
     
   def fit(self):
     # Run all episodes
-    RBUF = RBUF_OBJECT(200)
+    RBUF = RBUF_OBJECT(self.config.rbuf_size)
     for episode in tqdm(range(self.config.number_of_episodes), desc="Episode"):
       RBUF = self.run_episode(RBUF, display=False)
       #if self.sim_world_player.get_reward() == 1.0:
@@ -98,7 +98,7 @@ class ReinforcementLearner():
         sim_world_displayer.display(self.config.frame_delay)
 
     # Train ANET on a random minibatch of cases from RBUF:
-    self.actor.fit(RBUF.get_minibatch())
+    self.actor.fit(RBUF.list)
     return RBUF
 
   def display_game(self):

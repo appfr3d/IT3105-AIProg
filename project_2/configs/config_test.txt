@@ -2,15 +2,15 @@
 run_type : train
 
 size : 4
-model_count : 1
+model_count : 10
 games_per_series : 100
 exploration_constant : 1.0
 
-initial_epsilon : 0.0
-epsilon_decay_rate : 0.0
+initial_epsilon : 0.2
+epsilon_decay_rate : 1.0
 
-number_of_episodes : 100
-rollouts_per_move : 1
+number_of_episodes : 201
+rollouts_per_move : 100
 
 actor_learning_rate : 0.1
 neurons_per_layer : 16, 32, 64, 32, 16
@@ -24,9 +24,12 @@ activation_func : RELU
 tournament_participants : 10
 tournament_games : 10
 
-# greedy or stochastic
-tournament_action_mode : stochastic
+# greedy or stochastic or e-greedy
+tournament_action_mode : e-greedy
+# e-greedy value is initial-epsilon
 
+# Suggested size: size*size * either somewhere around 23 specifically or somewhere around a tenth of the total amount of epsiodes
+rbuf_size : 320
 
 frame_delay : 1000
 image_size : 1000

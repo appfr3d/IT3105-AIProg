@@ -1,0 +1,31 @@
+# train, train_multiple or tournament
+run_type : train
+
+size : 5
+model_count : 10
+games_per_series : 50
+exploration_constant : 1.0
+
+initial_epsilon : 1.0
+epsilon_decay_rate : 0.99
+
+number_of_episodes : 200
+rollouts_per_move : 50
+
+actor_learning_rate : 0.001
+neurons_per_layer : 30, 25
+
+# ADAGRAD, SGD, RMSPROP, ADAM
+optimizer : ADAGRAD
+
+# LINEAR, RELU, SIGMOID, TANH
+activation_func : RELU
+
+tournament_participants : 10
+tournament_games : 10
+
+# greedy or stochastic
+tournament_action_mode : greedy
+
+frame_delay : 1000
+image_size : 1000

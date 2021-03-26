@@ -1,4 +1,5 @@
-# train or tournament
+
+# train, train_multiple or tournament
 run_type : train
 
 size : 4

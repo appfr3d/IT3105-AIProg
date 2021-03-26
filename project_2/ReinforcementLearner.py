@@ -38,7 +38,7 @@ class RBUF_OBJECT():
       return random.choices(population=self.list, k=32)
 
 class ReinforcementLearner():
-  def __init__(self, config: ConfigReader, nn_bridge, game_bridge, model_path=None):
+  def __init__(self, config: ConfigReader, nn_bridge, game_bridge, save_path=None, model_path=None):
     """
     :param config: A config object containing configuration information.
     :param nn_bridge: game specific nn bridge
@@ -48,6 +48,7 @@ class ReinforcementLearner():
     self.actor = ActorNN(config, nn_bridge, model_path)
     self.config = config
     self.game_bridge = game_bridge
+    self.save_path = save_path
 
     
   def fit(self):
@@ -60,11 +61,11 @@ class ReinforcementLearner():
 
       # Multiplicative
       self.actor.epsilon *= self.config.epsilon_decay_rate
-      #   self.actor.epsilon_decay()
+      # self.actor.epsilon_decay()
 
       # If we are on save interval
-      if episode % int(math.floor(self.config.number_of_episodes / self.config.model_count)) == 0:
-        self.actor.save(episode)
+      if (episode + 1) % int(math.floor(self.config.number_of_episodes / self.config.model_count)) == 0:
+        self.actor.save(self.save_path, (episode + 1))
 
       # Logaritmic
       # if self.peg_log[-1] == 1:
@@ -105,8 +106,8 @@ class ReinforcementLearner():
     self.actor.epsilon = 0
     # self.sim_world_player.display = True
     # self.sim_world_player.force_display_frame()
-
-    self.run_episode(display=True)
+    RBUF = RBUF_OBJECT(200)
+    self.run_episode(RBUF, display=True)
   
   def load(self, path):
     self.actor.load(path)

@@ -45,27 +45,36 @@ class ConfigReader():
 
     self.tournament_action_mode = 'greedy'
 
-    self.read_config()
+    # Manually read config files from now on
+    # self.read_config()
 
-      
+  def get_config_files(self):
+    """
+    Returns the config file names
+    """
+    return [f for f in os.listdir(CONFIG_DIR) if f.startswith("config") and f.endswith(".txt")]
 
-  def read_config(self):
+  def read_config(self, file_path=None):
     """
     Reads the config.txt file and saves the values in the corresponding variables
     """
-    # Ask the use which config file to use
-    config_files = [f for f in os.listdir(CONFIG_DIR) if f.startswith("config") and f.endswith(".txt")]
-    if len(config_files) > 1:
-      print('Which config file do you want to use?:')
-      for i in range(len(config_files)):
-        print('(' + str(i) + '): ' + config_files[i])
-      file_index = input('(0-'+str(len(config_files)-1)+'): ')
-      while not file_index.isdigit() or int(file_index) < 0 or int(file_index) > (len(config_files)-1):
+    if file_path == None:
+      # Ask the use which config file to use
+      config_files = self.get_config_files()
+      if len(config_files) > 1:
+        print('Which config file do you want to use?:')
+        for i in range(len(config_files)):
+          print('(' + str(i) + '): ' + config_files[i])
         file_index = input('(0-'+str(len(config_files)-1)+'): ')
+        while not file_index.isdigit() or int(file_index) < 0 or int(file_index) > (len(config_files)-1):
+          file_index = input('(0-'+str(len(config_files)-1)+'): ')
 
-      file_name = config_files[int(file_index)]
+        file_name = config_files[int(file_index)]
+      else:
+        file_name = config_files[0]
     else:
-      file_name = config_files[0]
+      # Else use input file path
+      file_name = file_path
 
     f = open(os.path.join(CONFIG_DIR, file_name))
     for line in f:
@@ -148,3 +157,6 @@ class ConfigReader():
 
       elif key == 'rbuf_size':
         self.rbuf_size = int(val)
+
+    if file_path == None:
+      return file_name

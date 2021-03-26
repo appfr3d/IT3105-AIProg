@@ -14,6 +14,28 @@ from PlayerEnum import Player
 from MonteCarloTreeNodes import TreeNode, TreeState, HexGameBridge
 
 from tensorflow.keras.callbacks import TensorBoard
+import cProfile
+import re
+import random
+
+class RBUF_OBJECT():
+  def __init__(self, max_index):
+    self.list = []
+    self.index = 0
+    self.max_index = max_index
+
+  def append(self, list_object):
+    if len(self.list) == self.max_index+1:
+      self.list[self.index] = list_object
+      self.index = (self.index + 1) % self.max_index
+    else:
+      self.list.append(list_object)
+
+  def get_minibatch(self, minibatch_size=32):
+    if len(self.list) < minibatch_size:
+      return self.list
+    else:
+      return random.choices(population=self.list, k=32)
 
 class ReinforcementLearner():
   def __init__(self, config: ConfigReader, nn_bridge, game_bridge, model_path=None):
@@ -30,8 +52,9 @@ class ReinforcementLearner():
     
   def fit(self):
     # Run all episodes
+    RBUF = RBUF_OBJECT(200)
     for episode in tqdm(range(self.config.number_of_episodes), desc="Episode"):
-      self.run_episode(display=False)
+      RBUF = self.run_episode(RBUF, display=False)
       #if self.sim_world_player.get_reward() == 1.0:
       #  self.actor.epsilon_decay()
 
@@ -52,7 +75,7 @@ class ReinforcementLearner():
       
     
     
-  def run_episode(self, display=False):
+  def run_episode(self, RBUF, display=False):
     # 1: Make monte carlo tree
     # Get training samples
     # Do action 
@@ -64,8 +87,6 @@ class ReinforcementLearner():
       sim_world_displayer = ImageDisplay(game_state)
     tree_state = TreeState(self.game_bridge)
     root_node = TreeNode(self.config, game_state, Player.PLAYER1, tree_state, self.actor, self.actor.epsilon, self.game_bridge)
-    RBUF = []
-
     while not self.game_bridge.get_win(root_node.state):
       RBUF_pair, next_root = root_node.monte_carlo_action()
       RBUF.append(RBUF_pair)
@@ -77,7 +98,8 @@ class ReinforcementLearner():
         sim_world_displayer.display(self.config.frame_delay)
 
     # Train ANET on a random minibatch of cases from RBUF:
-    self.actor.fit(RBUF)
+    self.actor.fit(RBUF.get_minibatch())
+    return RBUF
 
   def display_game(self):
     self.actor.epsilon = 0

@@ -301,7 +301,7 @@ class TreeNode:
     parent_hash = parent.hash
     # self.visit_count must be > 0
     if parent.visit_count == 0:
-      return self.config.exploration_constant  # Derivative when visit count is 0
+      return 100000000000.0  # Common wisdom seems to hold always explore unexplored nodes
     elif self.edge_visit_counts[parent_hash] == 0:
       return self.config.exploration_constant * math.sqrt(math.log(parent.visit_count))
     else:

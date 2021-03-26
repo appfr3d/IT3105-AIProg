@@ -106,8 +106,8 @@ class ReinforcementLearner():
     self.actor.epsilon = 0
     # self.sim_world_player.display = True
     # self.sim_world_player.force_display_frame()
-
-    self.run_episode(display=True)
+    RBUF = RBUF_OBJECT(200)
+    self.run_episode(RBUF, display=True)
   
   def load(self, path):
     self.actor.load(path)

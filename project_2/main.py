@@ -19,7 +19,7 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 config = ConfigReader()
 
 # train, train_multiple or tournament
-run_type = 'tournament'
+run_type = 'train_multiple'
 
 if run_type == 'train':
   # Read config file

@@ -157,6 +157,8 @@ class ConfigReader():
 
       elif key == 'rbuf_size':
         self.rbuf_size = int(val)
+      elif key == 'epochs_per_rbuf':
+        self.epochs_per_rbuf = int(val)
 
     if file_path == None:
       return file_name

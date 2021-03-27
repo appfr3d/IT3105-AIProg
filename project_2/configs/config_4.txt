@@ -4,9 +4,9 @@ run_type : tournament
 size : 4
 model_count : 10
 games_per_series : 100
-exploration_constant : 1.0
+exploration_constant : 3.0
 
-initial_epsilon : 0.5
+initial_epsilon : 0.2
 epsilon_decay_rate : 1.0
 
 number_of_episodes : 201
@@ -32,9 +32,9 @@ tournament_action_mode : e-greedy
 # e-greedy value is initial-epsilon
 
 # Suggested size: size*size * either somewhere around 23 specifically or somewhere around a tenth of the total amount of epsiodes
-rbuf_size : 200000000000
+rbuf_size : 160
 # How many times the actor NN is trained over the current RBUF
-epochs_per_rbuf : 100
+epochs_per_rbuf : 1
 
 frame_delay : 1000
 image_size : 1000

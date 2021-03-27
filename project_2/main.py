@@ -18,7 +18,7 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 # Create config object
 config = ConfigReader()
 
-# train, train_multiple or tournament
+# train, train_multiple or tournament or tournament_complete
 run_type = 'train_multiple'
 
 if run_type == 'train':
@@ -108,4 +108,34 @@ elif run_type == 'tournament':
   tourney = Tournament(config, choosen_tournament_folder, game_bridge, nn_bridge)
   tourney.run_tourney()
 
+# Run a tourney for every action mode
+elif run_type == "tournament_complete":
+  # Find the folder where the tournament data lies
+  configs_dir = os.path.join(CURRENT_DIR, 'tournament_models')
+  config_folders = [name for name in os.listdir(configs_dir) if os.path.isdir(os.path.join(configs_dir, name))]
+
+  if len(config_folders) > 1:
+    print('Which config file do you want to use?:')
+    for i in range(len(config_folders)):
+      print('(' + str(i) + '): ' + config_folders[i])
+    folder_index = input('(0-' + str(len(config_folders) - 1) + '): ')
+    while not folder_index.isdigit() or int(folder_index) < 0 or int(folder_index) > (len(config_folders) - 1):
+      folder_index = input('(0-' + str(len(config_folders) - 1) + '): ')
+
+    folder_name = config_folders[int(folder_index)]
+  else:
+    folder_name = config_folders[0]
+
+  choosen_tournament_folder = os.path.join(configs_dir, folder_name)
+
+  # Read config file
+  config.read_config(os.path.join(choosen_tournament_folder, 'config_used.txt'))
+
+  for action_type in ['greedy', 'e-greedy', 'stochastic']:
+    config.tournament_action_mode = action_type
+    game_bridge = HexGameBridge(config)
+    nn_bridge = HexBoardNNBridge(config)
+
+    tourney = Tournament(config, choosen_tournament_folder, game_bridge, nn_bridge)
+    tourney.run_tourney()
 

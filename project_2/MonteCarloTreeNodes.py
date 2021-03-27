@@ -104,6 +104,9 @@ class HexGameBridge(GameBridge):
   
   def get_all_tree_moves(self, state):
     return state.get_all_moves()[1]
+
+  def get_dist_index(self, move):
+    return move[0][0] * self.config.size + move[0][1]
   
   def execute_move(self, state, move):
     new_state = self.initialize_new_state()
@@ -179,8 +182,8 @@ class TreeNode:
       child = self.children[child_str]
       move = self.move_to_child[child.hash]
       edge_visit_count = child.edge_visit_counts[self.hash]
-      distribution[move[0][0] * self.config.size + move[0][1]] += edge_visit_count # REFACTOR to be a part of the game-specific code
-      child_dist_map[move[0][0] * self.config.size + move[0][1]] = child
+      distribution[self.game_bridge.get_dist_index(move)] += edge_visit_count
+      child_dist_map[self.game_bridge.get_dist_index(move)] = child
 
     whole_sum = sum(distribution)
     distribution = np.asarray(distribution)/whole_sum
@@ -206,7 +209,7 @@ class TreeNode:
 
   def rollout(self, force_rollout=False):
     # If there are no more possible children/ungenerated children
-    if self.game_bridge.get_move_count(self.state) == 0:
+    if self.game_bridge.get_win(self.state):
       # IF there are no more moves there exists a winner
       return self.game_bridge.get_winner_data(self.state)
 
@@ -255,13 +258,13 @@ class TreeNode:
 
       best_child = children[child_index]
       # Move to next child
-      best_child.increment_edge_visit_count(self)
       if leaf_node:
         evaluation = best_child.rollout(force_rollout=True)
       else:
         evaluation = best_child.rollout()
       self.evaluation_value += evaluation
       self.visit_count += 1
+      best_child.increment_edge_visit_count(self)
       return evaluation
 
     else:
@@ -300,8 +303,10 @@ class TreeNode:
   def get_u_value(self, parent):
     parent_hash = parent.hash
     # self.visit_count must be > 0
-    if parent.visit_count == 0:
-      return 100000000000.0  # Common wisdom seems to hold always explore unexplored nodes
+    if self.visit_count == 0:
+      return 100000 # Always visit unexplored nodes
+    elif parent.visit_count == 0:
+      return self.config.exploration_constant
     elif self.edge_visit_counts[parent_hash] == 0:
       return self.config.exploration_constant * math.sqrt(math.log(parent.visit_count))
     else:

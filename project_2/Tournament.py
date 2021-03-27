@@ -5,6 +5,7 @@ from ActorNN import HexBoardNNBridge
 from MonteCarloTreeNodes import HexGameBridge
 from PlayerEnum import Player
 from SimWorldDisplayer import ImageDisplay
+import matplotlib.pyplot as plt
 class Tournament:
   def __init__(self, config, model_save_path, game_bridge, nn_bridge):
     self.config = config
@@ -15,12 +16,13 @@ class Tournament:
   def run_tourney(self):
     games_per_series = self.config.games_per_series
     agent_names = os.listdir(self.model_save_path)
+    agent_names = [a for a in agent_names if not '.txt' in a and not '.png' in a]
     agent_dict = {}
     agent_score_dict = {}
 
     # Make a dictionary for model names - agent
     for name in agent_names:
-      rl = ReinforcementLearner(self.config, self.nn_bridge, self.game_bridge, self.model_save_path + '/' + name)
+      rl = ReinforcementLearner(self.config, self.nn_bridge, self.game_bridge, self.model_save_path, self.model_save_path + '/' + name)
       agent_dict[name] = rl
     
     # Initialize agent_score_dicts
@@ -57,7 +59,8 @@ class Tournament:
               player1wins += 1
           agent_score_dict[name][name2] = player1wins
           agent_score_dict[name2][name] = player2wins
-    
+
+    win_count_list = []
     # Print results
     for name in agent_names:
       print("========================================================")
@@ -71,6 +74,11 @@ class Tournament:
           total_wins += agent_score_dict[name][name2]
       print('Total number of wins: ' + str(total_wins))
       print("\n\n\n")
+      win_count_list.append(total_wins)
+    fig, ax = plt.subplots()
+    ax.bar(agent_names, win_count_list)
+    #plt.show()
+    fig.savefig(self.model_save_path + "/" + self.config.tournament_action_mode + ".png")
 
 
   def run_game(self, agent1, agent2):
@@ -101,7 +109,7 @@ class Tournament:
         state = self.game_bridge.execute_move(state, action)
         player_to_move = Player.PLAYER1
     winner = self.game_bridge.get_winner_data(state)
-    if winner == 0:
+    if winner == 1:
       return Player.PLAYER1
     return Player.PLAYER2
 

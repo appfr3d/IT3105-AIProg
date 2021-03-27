@@ -1,25 +1,27 @@
+# MODELS ARE A SELECTION FROM 16168581107308
+
 # train, train_multiple or tournament
 run_type : tournament
 
 size : 4
 model_count : 10
-games_per_series : 100
-exploration_constant : 3.0
+games_per_series : 10
+exploration_constant : 1.0
 
-initial_epsilon : 0.2
+initial_epsilon : 0.5
 epsilon_decay_rate : 1.0
 
 number_of_episodes : 201
 rollouts_per_move : 100
 
-actor_learning_rate : 0.0001
+actor_learning_rate : 0.05
 # How ANN definition works: Each game may have some layers which are automatically input before these neurons
 # (ex. our Hex agent has some CONV2D layers and a flatten layer first),
 # and each game may have some layers which are put after (ex. softmax)
 neurons_per_layer : 256, 128, 64, 32, 16
 
 # ADAGRAD, SGD, RMSPROP, ADAM
-optimizer : ADAM
+optimizer : SGD
 
 # LINEAR, RELU, SIGMOID, TANH
 activation_func : RELU
@@ -32,9 +34,9 @@ tournament_action_mode : e-greedy
 # e-greedy value is initial-epsilon
 
 # Suggested size: size*size * either somewhere around 23 specifically or somewhere around a tenth of the total amount of epsiodes
-rbuf_size : 200000000000
+rbuf_size : 160
 # How many times the actor NN is trained over the current RBUF
-epochs_per_rbuf : 100
+epochs_per_rbuf : 1
 
 frame_delay : 1000
 image_size : 1000

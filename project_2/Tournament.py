@@ -13,6 +13,10 @@ class Tournament:
     self.game_bridge = game_bridge
     self.nn_bridge = nn_bridge
 
+    # When using epsilon greedy evaluation we use a little bit of variation, just so that a otherwise "good" model
+    # does not get stuck in a "bad" track that is deterministic from the start state.
+    self.config.initial_epsilon = 0.1
+
   def run_tourney(self):
     games_per_series = self.config.games_per_series
     agent_names = os.listdir(self.model_save_path)

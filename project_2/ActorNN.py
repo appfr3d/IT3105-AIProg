@@ -47,8 +47,9 @@ class ActorNN:
     for layer in pre_layers:
       model.add(layer)
     for dim in self.config.neurons_per_layer: 
-      model.add(keras.layers.Dense(dim, activation=self.config.activation_func))
-      model.add(keras.layers.BatchNormalization())
+      model.add(keras.layers.Dense(dim, activation=self.config.activation_func, kernel_regularizer = keras.regularizers.l2(l2=1e-4),
+  bias_regularizer = keras.regularizers.l2(1e-4)))
+      #model.add(keras.layers.BatchNormalization())
       # Batch normalization layers makes the output of each neuron more like a normal gaussian.
       # This often helps w/training time and generalization.
 
@@ -57,7 +58,7 @@ class ActorNN:
     for layer in output_layers:
       model.add(layer)
 
-    model.compile(optimizer=opt(lr=self.config.actor_learning_rate), loss=loss, metrics=[loss])
+    model.compile(optimizer=opt(lr=self.config.actor_learning_rate, clipnorm=1.0), loss=loss, metrics=[loss])
     model.build(input_shape = self.game_bridge.get_input_shape())
     return model
 
@@ -135,13 +136,15 @@ class HexBoardNNBridge(GameBridge):
     new_shape = (size+1)*(size+1)
     # Map input which has data about which player and the board onto a larger list, which can be reshaped into a
     # board shape for use with conv2d
-    pre_layers.append(keras.layers.Dense(new_shape, activation=self.config.activation_func))
-    pre_layers.append(keras.layers.BatchNormalization())
+    pre_layers.append(keras.layers.Dense(new_shape, activation=self.config.activation_func, kernel_regularizer = keras.regularizers.l2(l2=1e-4),
+  bias_regularizer = keras.regularizers.l2(1e-4)))
+    #pre_layers.append(keras.layers.BatchNormalization())
 
     pre_layers.append(keras.layers.Reshape((size+1, size+1, 1,)))
     while q >= 4:
-      pre_layers.append(keras.layers.Conv2D(filters=y, kernel_size=(2, 2), strides=2, activation=self.config.activation_func, padding='same'))
-      pre_layers.append(keras.layers.BatchNormalization())
+      pre_layers.append(keras.layers.Conv2D(filters=y, kernel_size=(2, 2), strides=2, activation=self.config.activation_func, padding='same', kernel_regularizer = keras.regularizers.l2(l2=1e-4),
+  bias_regularizer = keras.regularizers.l2(1e-4)))
+      #pre_layers.append(keras.layers.BatchNormalization())
       q = q / 2
       y *= 2
     pre_layers.append(keras.layers.Flatten())
@@ -180,12 +183,12 @@ class HexBoardNNBridge(GameBridge):
     return (2 + 2*self.config.size*self.config.size,)
   
   def get_output_layer(self):
-    return [keras.layers.Dense(self.config.size*self.config.size, activation='sigmoid'),
-                               keras.layers.Dense(self.config.size*self.config.size, activation=tf.nn.softmax)]
+    return [keras.layers.Dense(self.config.size*self.config.size, activation='sigmoid', kernel_regularizer = keras.regularizers.l2(l2=1e-4),
+  bias_regularizer = keras.regularizers.l2(1e-4)),
+                               keras.layers.Dense(self.config.size*self.config.size, activation='softmax')]
   
   def get_loss_metric(self):
     return keras.losses.KLD
-
 
   
   def translate_to_nn_input(self, params):

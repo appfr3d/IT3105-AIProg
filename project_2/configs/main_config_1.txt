@@ -1,0 +1,13 @@
+# train, train_multiple, tournament or tournament_complete
+run_type : train_multiple
+
+# number of games between each actor in a tournament. Should be a even number.
+games_per_series : 100
+
+# greedy or stochastic or e-greedy
+# e-greedy value is initial-epsilon
+tournament_action_mode : e-greedy
+
+# Visualization
+frame_delay : 1000
+image_size : 1000

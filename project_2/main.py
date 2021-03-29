@@ -15,13 +15,11 @@ import re
 import time
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-# Create config object
+
+# Create config object and read main config
 config = ConfigReader()
 
-# train, train_multiple or tournament or tournament_complete
-run_type = 'tournament_complete'
-
-if run_type == 'train':
+if config.run_type == 'train':
   # Read config file
   file_name = config.read_config()
 
@@ -47,7 +45,7 @@ if run_type == 'train':
       for line in old_config:
         new_config.write(line)
 
-elif run_type == 'train_multiple':
+elif config.run_type == 'train_multiple':
   # Get config file names
   file_names = config.get_config_files()
 
@@ -80,7 +78,7 @@ elif run_type == 'train_multiple':
           new_config.write(line)
 
 
-elif run_type == 'tournament':
+elif config.run_type == 'tournament':
   # Find the folder where the tournament data lies
   configs_dir = os.path.join(CURRENT_DIR, 'tournament_models')
   config_folders = [name for name in os.listdir(configs_dir) if os.path.isdir(os.path.join(configs_dir, name))]
@@ -109,7 +107,7 @@ elif run_type == 'tournament':
   tourney.run_tourney()
 
 # Run a tourney for every action mode
-elif run_type == "tournament_complete":
+elif config.run_type == "tournament_complete":
   # Find the folder where the tournament data lies
   configs_dir = os.path.join(CURRENT_DIR, 'tournament_models')
   config_folders = [name for name in os.listdir(configs_dir) if os.path.isdir(os.path.join(configs_dir, name))]

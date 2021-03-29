@@ -14,7 +14,8 @@ class Tournament:
 
   def run_tourney(self):
     games_per_series = self.config.games_per_series
-    agent_names = os.listdir(self.model_save_path)
+    agent_names = [name for name in os.listdir(self.model_save_path) if os.path.isdir(os.path.join(self.model_save_path, name))]
+  
     agent_dict = {}
     agent_score_dict = {}
 
@@ -58,7 +59,8 @@ class Tournament:
           agent_score_dict[name][name2] = player1wins
           agent_score_dict[name2][name] = player2wins
     
-    # Print results
+    # Print results for each model
+    total_wins_dict = {}
     for name in agent_names:
       print("========================================================")
       print("Results for agent " + name)
@@ -69,9 +71,17 @@ class Tournament:
         if name != name2:
           print("Result against " + name2 + " is: " + str(agent_score_dict[name][name2]) + " wins")
           total_wins += agent_score_dict[name][name2]
+      total_wins_dict[name] = total_wins
       print('Total number of wins: ' + str(total_wins))
       print("\n\n\n")
 
+    # Print combined results for total wins
+    print('Results   : | ', end='')
+    for name in agent_names:
+      print(name, end=' | ')
+    print('\nTotal wins: | ', end='')
+    for name in agent_names:
+      print("{:>8}".format(total_wins_dict[name]), end=' | ')
 
   def run_game(self, agent1, agent2):
     """

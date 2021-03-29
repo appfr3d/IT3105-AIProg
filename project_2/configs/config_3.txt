@@ -1,4 +1,3 @@
-
 # train, train_multiple or tournament
 run_type : train
 
@@ -13,8 +12,8 @@ epsilon_decay_rate : 0.99
 number_of_episodes : 200
 rollouts_per_move : 80
 
-actor_learning_rate : 0.005
-neurons_per_layer : 25, 30, 25
+actor_learning_rate : 0.01
+neurons_per_layer : 40, 20
 
 # ADAGRAD, SGD, RMSPROP, ADAM
 optimizer : SGD
@@ -26,7 +25,7 @@ tournament_participants : 10
 tournament_games : 10
 
 # greedy or stochastic
-tournament_action_mode : stochastic
+tournament_action_mode : greedy
 
 frame_delay : 1000
 image_size : 1000

@@ -75,7 +75,7 @@ class ConfigReader():
     else:
       # Else use input file path
       file_name = file_path
-    
+
     f = open(os.path.join(CONFIG_DIR, file_name))
     for line in f:
       if line.strip() == '' or line.startswith('#'):
@@ -154,6 +154,9 @@ class ConfigReader():
           self.activation_func = 'sigmoid'
         elif val == 'TANH':
           self.activation_func = 'tanh'
-    
+
+      elif key == 'rbuf_size':
+        self.rbuf_size = int(val)
+
     if file_path == None:
       return file_name

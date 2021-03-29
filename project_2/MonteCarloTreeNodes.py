@@ -93,7 +93,7 @@ class HexGameBridge(GameBridge):
     if winner == Player.PLAYER1:
       to_return = 1
     elif winner == Player.PLAYER2:
-      to_return = 0
+      to_return = -1
     else:
       # should not happen but for debugging
       raise Exception("No more moves but no winner yet, critical game logic failure") 
@@ -179,7 +179,7 @@ class TreeNode:
       child = self.children[child_str]
       move = self.move_to_child[child.hash]
       edge_visit_count = child.edge_visit_counts[self.hash]
-      distribution[move[0][0] * self.config.size + move[0][1]] += edge_visit_count
+      distribution[move[0][0] * self.config.size + move[0][1]] += edge_visit_count # REFACTOR to be a part of the game-specific code
       child_dist_map[move[0][0] * self.config.size + move[0][1]] = child
 
     whole_sum = sum(distribution)
@@ -294,7 +294,7 @@ class TreeNode:
   
   def get_q_value(self, parent):
     if self.edge_visit_counts[parent.hash] == 0:
-      return 0.5 # We assume that if a move has never been encountered, it will on average lead to 50% wins, and 50% losses.
+      return 0.0 # We assume that if a move has never been encountered, it will on average lead to 50% wins, and 50% losses.
     return self.evaluation_value/self.edge_visit_counts[parent.hash]
   
   def get_u_value(self, parent):

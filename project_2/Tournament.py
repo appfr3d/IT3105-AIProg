@@ -19,8 +19,8 @@ class Tournament:
 
   def run_tourney(self):
     games_per_series = self.config.games_per_series
-    agent_names = os.listdir(self.model_save_path)
-    agent_names = [a for a in agent_names if not '.txt' in a and not '.png' in a]
+    agent_names = [a for a in os.listdir(self.model_save_path) if os.path.isdir(os.path.join(self.model_save_path, a))]
+  
     agent_dict = {}
     agent_score_dict = {}
 
@@ -66,6 +66,8 @@ class Tournament:
 
     win_count_list = []
     # Print results
+    # Print results for each model
+    total_wins_dict = {}
     for name in agent_names:
       print("========================================================")
       print("Results for agent " + name)
@@ -76,6 +78,7 @@ class Tournament:
         if name != name2:
           print("Result against " + name2 + " is: " + str(agent_score_dict[name][name2]) + " wins")
           total_wins += agent_score_dict[name][name2]
+      total_wins_dict[name] = total_wins
       print('Total number of wins: ' + str(total_wins))
       print("\n\n\n")
       win_count_list.append(total_wins)
@@ -84,6 +87,13 @@ class Tournament:
     #plt.show()
     fig.savefig(self.model_save_path + "/" + self.config.tournament_action_mode + ".png")
 
+    # Print combined results for total wins
+    print('Results   : | ', end='')
+    for name in agent_names:
+      print(name, end=' | ')
+    print('\nTotal wins: | ', end='')
+    for name in agent_names:
+      print("{:>8}".format(total_wins_dict[name]), end=' | ')
 
   def run_game(self, agent1, agent2):
     """

@@ -16,6 +16,28 @@ import time
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
+
+def get_choosen_tournament_folder():
+  # Find the folder where the tournament data lies
+  configs_dir = os.path.join(CURRENT_DIR, 'tournament_models')
+  config_folders = [name for name in os.listdir(configs_dir) if os.path.isdir(os.path.join(configs_dir, name))]
+
+  if len(config_folders) > 1:
+    print('Which config file do you want to use?:')
+    for i in range(len(config_folders)):
+      print('(' + str(i) + '): ' + config_folders[i])
+    folder_index = input('(0-' + str(len(config_folders) - 1) + '): ')
+    while not folder_index.isdigit() or int(folder_index) < 0 or int(folder_index) > (len(config_folders) - 1):
+      folder_index = input('(0-' + str(len(config_folders) - 1) + '): ')
+
+    folder_name = config_folders[int(folder_index)]
+  else:
+    folder_name = config_folders[0]
+
+  return os.path.join(configs_dir, folder_name)
+
+
+
 # Create config object and read main config
 config = ConfigReader()
 
@@ -77,25 +99,28 @@ elif config.run_type == 'train_multiple':
         for line in old_config:
           new_config.write(line)
 
+elif config.run_type == 'train_again':
+  choosen_tournament_folder = get_choosen_tournament_folder()
+
+  # Read config file
+  config.read_config(os.path.join(choosen_tournament_folder, 'config_used.txt'))
+
+  # Initialize bridges
+  nn_bridge = HexBoardNNBridge(config)
+  game_bridge = HexGameBridge(config)
+  
+  # Find the last model made
+  model_dirs = [d for d in os.listdir(choosen_tournament_folder) if os.path.isdir(os.path.join(choosen_tournament_folder, d))]
+  model_path = os.path.join(choosen_tournament_folder, model_dirs[-1])
+
+  # Initialize the RL learner
+  learner = ReinforcementLearner(config, nn_bridge, game_bridge, choosen_tournament_folder, model_path)
+
+  # Train the learner
+  learner.fit()
 
 elif config.run_type == 'tournament':
-  # Find the folder where the tournament data lies
-  configs_dir = os.path.join(CURRENT_DIR, 'tournament_models')
-  config_folders = [name for name in os.listdir(configs_dir) if os.path.isdir(os.path.join(configs_dir, name))]
-
-  if len(config_folders) > 1:
-    print('Which config file do you want to use?:')
-    for i in range(len(config_folders)):
-      print('(' + str(i) + '): ' + config_folders[i])
-    folder_index = input('(0-'+str(len(config_folders)-1)+'): ')
-    while not folder_index.isdigit() or int(folder_index) < 0 or int(folder_index) > (len(config_folders)-1):
-      folder_index = input('(0-'+str(len(config_folders)-1)+'): ')
-
-    folder_name = config_folders[int(folder_index)]
-  else:
-    folder_name = config_folders[0]
-
-  choosen_tournament_folder = os.path.join(configs_dir, folder_name)
+  choosen_tournament_folder = get_choosen_tournament_folder()
 
   # Read config file
   config.read_config(os.path.join(choosen_tournament_folder, 'config_used.txt'))
@@ -108,23 +133,7 @@ elif config.run_type == 'tournament':
 
 # Run a tourney for every action mode
 elif config.run_type == "tournament_complete":
-  # Find the folder where the tournament data lies
-  configs_dir = os.path.join(CURRENT_DIR, 'tournament_models')
-  config_folders = [name for name in os.listdir(configs_dir) if os.path.isdir(os.path.join(configs_dir, name))]
-
-  if len(config_folders) > 1:
-    print('Which config file do you want to use?:')
-    for i in range(len(config_folders)):
-      print('(' + str(i) + '): ' + config_folders[i])
-    folder_index = input('(0-' + str(len(config_folders) - 1) + '): ')
-    while not folder_index.isdigit() or int(folder_index) < 0 or int(folder_index) > (len(config_folders) - 1):
-      folder_index = input('(0-' + str(len(config_folders) - 1) + '): ')
-
-    folder_name = config_folders[int(folder_index)]
-  else:
-    folder_name = config_folders[0]
-
-  choosen_tournament_folder = os.path.join(configs_dir, folder_name)
+  choosen_tournament_folder = get_choosen_tournament_folder()
 
   # Read config file
   config.read_config(os.path.join(choosen_tournament_folder, 'config_used.txt'))

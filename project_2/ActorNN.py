@@ -89,6 +89,14 @@ class ActorNN:
   def load(self, path):
     self.model = keras.models.load_model(path, compile=False)
 
+    
+    if self.config.run_type == 'train_again':
+      # Compile and build model for further training.
+      opt = self.config.optimizer
+      loss = self.game_bridge.get_loss_metric()
+      self.model.compile(optimizer=opt(lr=self.config.actor_learning_rate, clipnorm=1.0), loss=loss, metrics=[loss])
+      self.model.build(input_shape = self.game_bridge.get_input_shape())
+
 
 class GameBridge:
   def __init__(self):

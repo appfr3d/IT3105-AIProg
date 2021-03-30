@@ -4,6 +4,7 @@ exploration_constant : 3.0
 
 initial_epsilon : 1
 epsilon_decay_rate : 0.99
+epsilon_lower_bound : 0.2
 
 number_of_episodes : 200
 rollouts_per_move : 100
@@ -22,6 +23,6 @@ optimizer : ADAM
 activation_func : RELU
 
 # Suggested size: size*size * either somewhere around 23 specifically or somewhere around a tenth of the total amount of epsiodes
-rbuf_size : 8000
+rbuf_size : 5000
 # How many times the actor NN is trained over the current RBUF
 epochs_per_rbuf : 1

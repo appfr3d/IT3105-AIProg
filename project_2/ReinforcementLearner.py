@@ -15,7 +15,7 @@ from MonteCarloTreeNodes import TreeNode, TreeState, HexGameBridge
 
 from tensorflow.keras.callbacks import TensorBoard
 import cProfile
-import re
+import os
 import random
 
 class RBUF_OBJECT():
@@ -49,18 +49,38 @@ class ReinforcementLearner():
     self.config = config
     self.game_bridge = game_bridge
     self.save_path = save_path
+    self.model_path = model_path
 
     
   def fit(self):
     # Run all episodes
     RBUF = RBUF_OBJECT(self.config.rbuf_size)
-    for episode in tqdm(range(self.config.number_of_episodes), desc="Episode"):
+
+    # if there are some directories in self.save_path
+    # start from the highest number
+    if not self.model_path == None:
+      # find the episode number from the model_path
+      _, tail = os.path.split(self.model_path)
+      start_episode = int(tail)
+
+      # Calculate the last epsilon value and set initial epsilon to that value
+      e = self.config.initial_epsilon
+      for _ in range(start_episode):
+        e *= self.config.epsilon_decay_rate
+      self.actor.epsilon = max(e, self.config.epsilon_lower_bound)
+
+      print('Starting traingin on episode ' + str(start_episode))
+
+    else:
+      start_episode = 0
+
+    for episode in tqdm(range(start_episode, start_episode + self.config.number_of_episodes), desc="Episode"):
       RBUF = self.run_episode(RBUF, display=False)
       #if self.sim_world_player.get_reward() == 1.0:
       #  self.actor.epsilon_decay()
 
       # Multiplicative
-      self.actor.epsilon *= self.config.epsilon_decay_rate
+      self.actor.epsilon = max(self.actor.epsilon*self.config.epsilon_decay_rate, self.config.epsilon_lower_bound) 
       # self.actor.epsilon_decay()
 
       # If we are on save interval

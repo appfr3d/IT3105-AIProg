@@ -1,5 +1,5 @@
-# train, train_multiple, tournament or tournament_complete
-run_type : train_multiple
+# train, train_multiple, train_again, tournament or tournament_complete
+run_type : tournament_complete
 
 # number of games between each actor in a tournament. Should be a even number.
 games_per_series : 100

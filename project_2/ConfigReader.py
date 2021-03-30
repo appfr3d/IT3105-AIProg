@@ -29,6 +29,7 @@ class ConfigReader():
 
     self.initial_epsilon = 0.75
     self.epsilon_decay_rate = 0.99
+    self.epsilon_lower_bound = 0.2
 
     self.number_of_episodes = 10
     self.rollouts_per_move = 10
@@ -149,6 +150,9 @@ class ConfigReader():
       
       elif key == 'epsilon_decay_rate':
         self.epsilon_decay_rate = float(val)
+      
+      elif key == 'epsilon_lower_bound':
+        self.epsilon_lower_bound = float(val)
 
       elif key == 'number_of_episodes':
         self.number_of_episodes = int(val)

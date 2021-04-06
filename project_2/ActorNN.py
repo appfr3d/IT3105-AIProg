@@ -48,7 +48,7 @@ class ActorNN:
       model.add(layer)
     for dim in self.config.neurons_per_layer: 
       model.add(keras.layers.Dense(dim, activation=self.config.activation_func, kernel_regularizer = keras.regularizers.l2(l2=1e-4),
-  bias_regularizer = keras.regularizers.l2(1e-4)))
+            bias_regularizer = keras.regularizers.l2(1e-4)))
       #model.add(keras.layers.BatchNormalization())
       # Batch normalization layers makes the output of each neuron more like a normal gaussian.
       # This often helps w/training time and generalization.
@@ -297,5 +297,170 @@ class HexBoardNNBridge(GameBridge):
     """
     return np.multiply(values, mask_values)
 
+class HexBoardNNBridgeOnlineTournament(GameBridge):
+  def __init__(self, config):
+    self.config = config
+
+  def get_pre_layers(self):
+    pre_layers = []
+    size = self.config.size
+    q = size
+    y = 16
+
+    new_shape = (size+1)*(size+1)
+    # Map input which has data about which player and the board onto a larger list, which can be reshaped into a
+    # board shape for use with conv2d
+    pre_layers.append(keras.layers.Dense(new_shape, activation=self.config.activation_func, kernel_regularizer = keras.regularizers.l2(l2=1e-4),
+        bias_regularizer = keras.regularizers.l2(1e-4)))
+    #pre_layers.append(keras.layers.BatchNormalization())
+
+    pre_layers.append(keras.layers.Reshape((size+1, size+1, 1,)))
+    while q >= 4:
+      pre_layers.append(keras.layers.Conv2D(filters=y, kernel_size=(2, 2), strides=2, activation=self.config.activation_func, padding='same', kernel_regularizer = keras.regularizers.l2(l2=1e-4),
+            bias_regularizer = keras.regularizers.l2(1e-4)))
+      #pre_layers.append(keras.layers.BatchNormalization())
+      q = q / 2
+      y *= 2
+    pre_layers.append(keras.layers.Flatten())
+    return pre_layers
+
+  def process_training_samples(self, RBUF):
+    # Get random minibatch of RBUF
+    # RBUF = [((board, player_to_move), distribution)]
+    # training_samples = [(input, target)]
+    # input = [0, 1, 0 , 0, ... ] binary version of board state
+    # target is just distribution
+    
+    
+    def map_to_sample(RBUF_pair):
+      board = RBUF_pair[0][0]
+      moves = board.get_all_moves()
+      player_to_move = RBUF_pair[0][1]
+
+      binary_input = self.translate_to_nn_input((moves, player_to_move, board.board))
+      distribution = RBUF_pair[1]
+
+      return (binary_input, distribution)
+    
+    # For now, just return every case
+    training_samples = [map_to_sample(RBUF_pair) for RBUF_pair in RBUF]
+    x = np.zeros((len(training_samples), len(training_samples[0][0][0])))
+    y = np.zeros((len(training_samples), len(training_samples[0][1])))
+
+    for num in range(len(training_samples)):
+      x[num] = training_samples[num][0][0]
+      y[num] = training_samples[num][1]
+    
+    return {'x':x, 'y':y}
   
+  def get_input_shape(self): 
+    return (2 + 2*self.config.size*self.config.size,)
+  
+  def get_output_layer(self):
+    return [keras.layers.Dense(self.config.size*self.config.size, activation='sigmoid', kernel_regularizer = keras.regularizers.l2(l2=1e-4),
+            bias_regularizer = keras.regularizers.l2(1e-4)),
+                               keras.layers.Dense(self.config.size*self.config.size, activation='softmax')]
+  
+  def get_loss_metric(self):
+    return keras.losses.KLD
+
+  
+  def translate_to_nn_input(self, params):
+    moves = params[0] # hex_board.get_all_moves()
+    player_to_move = params[1]
+    board_representation = params[2]
+
+    inputs = np.zeros(shape=(1, 2 + 2 * self.config.size*self.config.size))
+    index = 0
+    if player_to_move == Player.PLAYER1:
+      # 01 means that player1 can place peg at a given position
+      inputs[0, index] = 0
+      index += 1
+      inputs[0, index] = 1
+      index += 1
+    else:
+      # 10 means that player2 can place peg at a given position
+      inputs[0, index] = 1
+      index += 1
+      inputs[0, index] = 0
+      index += 1
+    
+    for row in range(len(board_representation)):
+      for col in range(len(board_representation[0])):
+        val = board_representation[row][col]
+        if val.state == PegState.PLAYER1:
+          inputs[0, index] = 0
+          index += 1
+          inputs[0, index] = 1
+          index += 1
+        elif val.state == PegState.PLAYER2:
+          inputs[0, index] = 1
+          index += 1
+          inputs[0, index] = 0
+          index += 1
+        else: 
+          inputs[0, index] = 0
+          index += 1
+          inputs[0, index] = 0
+          index += 1
+    
+    return inputs
+  
+  def post_process(self, nn_output, params): 
+    nn_output = nn_output.reshape((self.config.size*self.config.size,))
+    moves = params[0]
+    player_to_move = params[1]
+    board_representation = params[2]
+    move_type = params[3]
+    legal_moves = moves # 2D array with 1 for legal move 0 for not
+
+    # Mask out non-legal moves
+    # crucially it just sets invalid 
+    values = self.mask(nn_output, np.asarray(legal_moves).flatten())
+
+    
+    if move_type == 'greedy':
+      index = list(values).index(max(values))
+    elif move_type == 'stochastic':    
+      # normalize
+      the_sum = np.sum(values)
+      for indx in range(len(values)):
+        values[indx] = values[indx]/the_sum
+
+      values = np.insert(values, 0, [0.0])
+
+      # aggregate
+      for indx in range(1, len(values)):
+        values[indx] = values[indx] + values[indx-1]
+
+      randval = random.random()
+      index = 1
+
+      # Choose by finding which interval randval is in, stochastic choice
+      while True:
+        if randval >= values[index-1] and randval < values[index] and values[index-1] != values[index]:
+          # If it is in interval
+          # And the values are not equal <=> it is not one of the invalid moves that were masked out to 0
+          break
+        else:
+          index += 1
+      index -= 1 # because we added a 0 at start of the values list
+    elif move_type == 'e-greedy':
+      e = self.config.initial_epsilon # FOR NOW assumes constant epsilon
+      randval = random.random()
+      if randval < e:
+        index = random.randint(0, values.shape[0]-1)
+      else:
+        index = list(values).index(max(values))
+
+    pos = (index // self.config.size, index % self.config.size)
+
+    return (pos, player_to_move) # ((x, y), player_to_move)
+
+  def mask(self, values, mask_values):
+    """
+    Map values to 0 if mask_values at elementwise same position is 0, or to original value of mask_values is 1
+    """
+    return np.multiply(values, mask_values)
+
     

@@ -1,6 +1,5 @@
 import os
 from simWorld import ShapeType
-from ActivationFunctionType import ActivationFunctionType
 from OptimizerType import OptimizerType
 import tensorflow as tf
 from tensorflow import keras

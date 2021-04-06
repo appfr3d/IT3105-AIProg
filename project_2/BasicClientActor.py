@@ -1,11 +1,29 @@
 import math
 from BasicClientActorAbs import BasicClientActorAbs
 
+import os
+from ConfigReader import ConfigReader
+from ActorNN import ActorNN, HexBoardNNBridgeOnlineTournament
+
+
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+
 class BasicClientActor(BasicClientActorAbs):
 
     def __init__(self, IP_address=None, verbose=True):
         self.series_id = -1
         BasicClientActorAbs.__init__(self, IP_address, verbose=verbose)
+
+        config = ConfigReader()
+        config.read_config('oht_config.txt')
+        nn_bridge = HexBoardNNBridgeOnlineTournament(config)
+        
+        # Find the last model made
+        oht_model_dir = os.path.join(CURRENT_DIR, 'tournament_models', 'oht_model')
+        model_dirs = [d for d in os.listdir(oht_model_dir) if os.path.isdir(os.path.join(oht_model_dir, d))]
+        model_path = os.path.join(oht_model_dir, model_dirs[-1])
+
+        self.actor = ActorNN(config, nn_bridge, model_path)
 
     def handle_get_action(self, state):
         """
@@ -17,17 +35,7 @@ class BasicClientActor(BasicClientActorAbs):
         then you will see a 2 here throughout the entire series, whereas player 1 will see a 1.
         :return: Your actor's selected action as a tuple (row, column)
         """
-
-        # This is an example player who picks random moves. REMOVE THIS WHEN YOU ADD YOUR OWN CODE !!
-        next_move = tuple(self.pick_random_free_cell(
-            state, size=int(math.sqrt(len(state)-1))))
-        #############################
-        #
-        #
-        # YOUR CODE HERE
-        #
-        # next_move = ???
-        ##############################
+        next_move = self.actor.eval(state)
         return next_move
 
     # The rest of the stuff seeems fine as it was  

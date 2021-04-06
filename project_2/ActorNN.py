@@ -145,13 +145,13 @@ class HexBoardNNBridge(GameBridge):
     # Map input which has data about which player and the board onto a larger list, which can be reshaped into a
     # board shape for use with conv2d
     pre_layers.append(keras.layers.Dense(new_shape, activation=self.config.activation_func, kernel_regularizer = keras.regularizers.l2(l2=1e-4),
-  bias_regularizer = keras.regularizers.l2(1e-4)))
+        bias_regularizer = keras.regularizers.l2(1e-4)))
     #pre_layers.append(keras.layers.BatchNormalization())
 
     pre_layers.append(keras.layers.Reshape((size+1, size+1, 1,)))
     while q >= 4:
       pre_layers.append(keras.layers.Conv2D(filters=y, kernel_size=(2, 2), strides=2, activation=self.config.activation_func, padding='same', kernel_regularizer = keras.regularizers.l2(l2=1e-4),
-  bias_regularizer = keras.regularizers.l2(1e-4)))
+      bias_regularizer = keras.regularizers.l2(1e-4)))
       #pre_layers.append(keras.layers.BatchNormalization())
       q = q / 2
       y *= 2
@@ -192,7 +192,7 @@ class HexBoardNNBridge(GameBridge):
   
   def get_output_layer(self):
     return [keras.layers.Dense(self.config.size*self.config.size, activation='sigmoid', kernel_regularizer = keras.regularizers.l2(l2=1e-4),
-  bias_regularizer = keras.regularizers.l2(1e-4)),
+      bias_regularizer = keras.regularizers.l2(1e-4)),
                                keras.layers.Dense(self.config.size*self.config.size, activation='softmax')]
   
   def get_loss_metric(self):
@@ -366,96 +366,35 @@ class HexBoardNNBridgeOnlineTournament(GameBridge):
 
   
   def translate_to_nn_input(self, params):
-    moves = params[0] # hex_board.get_all_moves()
-    player_to_move = params[1]
-    board_representation = params[2]
+    moves = params
+    rep = []
 
-    inputs = np.zeros(shape=(1, 2 + 2 * self.config.size*self.config.size))
-    index = 0
-    if player_to_move == Player.PLAYER1:
-      # 01 means that player1 can place peg at a given position
-      inputs[0, index] = 0
-      index += 1
-      inputs[0, index] = 1
-      index += 1
-    else:
-      # 10 means that player2 can place peg at a given position
-      inputs[0, index] = 1
-      index += 1
-      inputs[0, index] = 0
-      index += 1
+    for datapoint in moves:
+      if datapoint == 0:
+        rep.append(0)
+        rep.append(0)
+      elif datapoint == 1:
+        rep.append(0)
+        rep.append(1)
+      elif datapoint == 2:
+        rep.append(1)
+        rep.append(0)
     
-    for row in range(len(board_representation)):
-      for col in range(len(board_representation[0])):
-        val = board_representation[row][col]
-        if val.state == PegState.PLAYER1:
-          inputs[0, index] = 0
-          index += 1
-          inputs[0, index] = 1
-          index += 1
-        elif val.state == PegState.PLAYER2:
-          inputs[0, index] = 1
-          index += 1
-          inputs[0, index] = 0
-          index += 1
-        else: 
-          inputs[0, index] = 0
-          index += 1
-          inputs[0, index] = 0
-          index += 1
-    
-    return inputs
+    return np.asarray(rep)
   
   def post_process(self, nn_output, params): 
     nn_output = nn_output.reshape((self.config.size*self.config.size,))
-    moves = params[0]
-    player_to_move = params[1]
-    board_representation = params[2]
-    move_type = params[3]
-    legal_moves = moves # 2D array with 1 for legal move 0 for not
+    moves = params
 
     # Mask out non-legal moves
     # crucially it just sets invalid 
-    values = self.mask(nn_output, np.asarray(legal_moves).flatten())
+    values = self.mask(nn_output, np.asarray(moves).flatten())
 
-    
-    if move_type == 'greedy':
-      index = list(values).index(max(values))
-    elif move_type == 'stochastic':    
-      # normalize
-      the_sum = np.sum(values)
-      for indx in range(len(values)):
-        values[indx] = values[indx]/the_sum
-
-      values = np.insert(values, 0, [0.0])
-
-      # aggregate
-      for indx in range(1, len(values)):
-        values[indx] = values[indx] + values[indx-1]
-
-      randval = random.random()
-      index = 1
-
-      # Choose by finding which interval randval is in, stochastic choice
-      while True:
-        if randval >= values[index-1] and randval < values[index] and values[index-1] != values[index]:
-          # If it is in interval
-          # And the values are not equal <=> it is not one of the invalid moves that were masked out to 0
-          break
-        else:
-          index += 1
-      index -= 1 # because we added a 0 at start of the values list
-    elif move_type == 'e-greedy':
-      e = self.config.initial_epsilon # FOR NOW assumes constant epsilon
-      randval = random.random()
-      if randval < e:
-        index = random.randint(0, values.shape[0]-1)
-      else:
-        index = list(values).index(max(values))
-
+    # Allways choose greedy in tournament
+    index = list(values).index(max(values))
     pos = (index // self.config.size, index % self.config.size)
 
-    return (pos, player_to_move) # ((x, y), player_to_move)
+    return pos # ((x, y), player_to_move)
 
   def mask(self, values, mask_values):
     """

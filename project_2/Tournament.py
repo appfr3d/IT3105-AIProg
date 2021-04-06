@@ -110,6 +110,9 @@ class Tournament:
     state = self.game_bridge.initialize_new_state()
     action_mode = self.config.tournament_action_mode
     while not self.game_bridge.get_win(state):
+      if self.config.display:
+        sim_world_displayer = ImageDisplay(state)
+        sim_world_displayer.display(self.config.frame_delay)
       if player_to_move == Player.PLAYER1:
         # player1
         moves = self.game_bridge.get_all_nn_moves(state)
@@ -123,6 +126,8 @@ class Tournament:
         state = self.game_bridge.execute_move(state, action)
         player_to_move = Player.PLAYER1
     winner = self.game_bridge.get_winner_data(state)
+    if self.config.display:
+      sim_world_displayer = ImageDisplay(state)
     if winner == 1:
       return Player.PLAYER1
     return Player.PLAYER2

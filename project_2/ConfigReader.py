@@ -38,6 +38,8 @@ class ConfigReader():
 
     self.frame_delay = 1000
     self.image_size = 1000
+    self.display = False
+
     self.optimizer = keras.optimizers.SGD
     self.activation_func = 'relu'
 
@@ -95,6 +97,12 @@ class ConfigReader():
       
       elif key == 'image_size':
         self.image_size = int(val)
+      
+      elif key == 'display':
+        if val == 'FALSE':
+          self.display = False
+        elif val == 'TRUE':
+          self.display = True
 
 
   def get_config_files(self):

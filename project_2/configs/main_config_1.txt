@@ -1,5 +1,5 @@
 # train, train_multiple, train_again, tournament or tournament_complete
-run_type : tournament_complete
+run_type : train
 
 # number of games between each actor in a tournament. Should be a even number.
 games_per_series : 100
@@ -11,3 +11,6 @@ tournament_action_mode : e-greedy
 # Visualization
 frame_delay : 1000
 image_size : 1000
+
+# TRUE/FALSE
+display : FALSE

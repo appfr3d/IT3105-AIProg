@@ -4,7 +4,7 @@ from BasicClientActorAbs import BasicClientActorAbs
 import os
 from ConfigReader import ConfigReader
 from ActorNN import ActorNN, HexBoardNNBridgeOnlineTournament
-
+import numpy as np
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 

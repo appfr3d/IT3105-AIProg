@@ -380,15 +380,21 @@ class HexBoardNNBridgeOnlineTournament(GameBridge):
         rep.append(1)
         rep.append(0)
     
-    return np.asarray(rep)
+    return np.asarray(rep).reshape(1, len(rep))
   
   def post_process(self, nn_output, params): 
     nn_output = nn_output.reshape((self.config.size*self.config.size,))
-    moves = params
+    moves = np.asarray(params[1:])  # First one is who gets to move
+    # flip moves s.t. 1 indicates empty, 0 indicates not empty
+    moves[moves == 0] = 10
+    moves[moves == 1] = 0
+    moves[moves == 2] = 0
+    moves[moves == 10] = 1
 
     # Mask out non-legal moves
     # crucially it just sets invalid 
     values = self.mask(nn_output, np.asarray(moves).flatten())
+
 
     # Allways choose greedy in tournament
     index = list(values).index(max(values))

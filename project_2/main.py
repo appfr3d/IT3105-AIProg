@@ -15,7 +15,7 @@ import re
 import time
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-
+os.environ["KERAS_BACKEND"] = "plaidml.keras.backend"
 
 def get_choosen_tournament_folder():
   # Find the folder where the tournament data lies

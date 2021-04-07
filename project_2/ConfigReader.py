@@ -168,7 +168,8 @@ class ConfigReader():
         self.rollouts_per_move = int(val)
 
       elif key == 'neurons_per_layer':
-        self.neurons_per_layer = [int(d) for d in val.split(',')]
+        if val != 'NONE':
+          self.neurons_per_layer = [int(d) for d in val.split(',')]
 
       elif key == 'actor_learning_rate':
         self.actor_learning_rate = float(val)

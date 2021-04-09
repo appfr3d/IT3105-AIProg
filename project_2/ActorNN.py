@@ -255,7 +255,16 @@ class HexBoardNNBridge(GameBridge):
     
     if move_type == 'greedy':
       index = list(values).index(max(values))
-    elif move_type == 'stochastic':    
+    elif move_type == 'stochastic' or move_type == 'stochastic_pow':
+
+      if move_type == 'stochastic_pow':
+        # Make every number be 1 + num to avoid nan problems
+        for indx in range(len(values)):
+          values[indx] += 1
+        # Increase probability of higher numbers by raisung them to the power of 2
+        for indx in range(len(values)):
+          values[indx] = values[indx]**10
+
       # normalize
       the_sum = np.sum(values)
       for indx in range(len(values)):
@@ -272,6 +281,8 @@ class HexBoardNNBridge(GameBridge):
 
       # Choose by finding which interval randval is in, stochastic choice
       while True:
+        if index == 37:
+          print('what')
         if randval >= values[index-1] and randval < values[index] and values[index-1] != values[index]:
           # If it is in interval
           # And the values are not equal <=> it is not one of the invalid moves that were masked out to 0
@@ -283,6 +294,14 @@ class HexBoardNNBridge(GameBridge):
       e = self.config.initial_epsilon # FOR NOW assumes constant epsilon
       randval = random.random()
       if randval < e:
+        index = random.randint(0, values.shape[0]-1)
+      else:
+        index = list(values).index(max(values))
+    elif move_type == 'first-random-greedy':
+      # If first move in the game, choose randomly
+      # Else, choose greedy
+      num_possible_moves = np.sum(np.asarray(legal_moves, dtype=np.bool))
+      if num_possible_moves == self.config.size**2:
         index = random.randint(0, values.shape[0]-1)
       else:
         index = list(values).index(max(values))

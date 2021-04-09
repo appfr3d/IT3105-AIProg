@@ -34,8 +34,8 @@ reconstructed_model.fit(test_input, test_target)
 '''
 
 # Test epsilon decay bounds
-e = 1
-for i in range(250):
+e = 0.5
+for i in range(80):
     e *= 0.99
 
 print(e)

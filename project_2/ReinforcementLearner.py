@@ -93,7 +93,8 @@ class ReinforcementLearner():
 
       # Linear
       # self.actor.epsilon = self.config.initial_epsilon * (1 - (episode/self.config.number_of_episodes))
-      
+    # TODO: If last episode is not saved, save it here...
+    # Read the directories from self.save_path if it is not None and check if the last episode is in it.
     
     
   def run_episode(self, RBUF):

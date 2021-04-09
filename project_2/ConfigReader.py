@@ -183,7 +183,7 @@ class ConfigReader():
           self.optimizer = keras.optimizers.RMSprop
         elif val == 'ADAM':
           self.optimizer = keras.optimizers.Adam
-      
+
       elif key == 'activation_func':
         if val == 'LINEAR':
           self.activation_func = 'linear'
@@ -193,11 +193,15 @@ class ConfigReader():
           self.activation_func = 'sigmoid'
         elif val == 'TANH':
           self.activation_func = 'tanh'
+        elif 'LEAKYRELU' in val:
+          self.activation_func = keras.layers.LeakyReLU(float(val.split(',')[1]))
 
       elif key == 'rbuf_size':
         self.rbuf_size = int(val)
       elif key == 'epochs_per_rbuf':
         self.epochs_per_rbuf = int(val)
+      elif key == 'timeout':
+        self.timeout = float(val)
 
     if file_path == None:
       return file_name

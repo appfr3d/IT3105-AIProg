@@ -1,3 +1,5 @@
+import time
+
 from Pieces import PegState
 from HexGameBoard import HexGameBoard
 from PlayerEnum import Player
@@ -169,10 +171,11 @@ class TreeNode:
     self.move_to_child = {}
     self.game_bridge = game_bridge
     self.hash = self.game_bridge.hash(self.state)
-    # Function that adds a (root, D) pair to RBUF
+    # we can just store which action the NN has taken previously to save computation time
 
   def monte_carlo_action(self):
-    for num in range(self.config.rollouts_per_move):
+    time_start = time.time()
+    while time.time() - time_start < self.config.timeout:
       self.rollout()
     
     distribution = [0 for x in range(self.game_bridge.get_max_possible_actions())]
@@ -276,11 +279,13 @@ class TreeNode:
         moves = self.game_bridge.get_all_nn_moves(self.state)
         action = self.default_policy.eval(
           (moves, self.player_to_move, self.game_bridge.get_state(self.state), "greedy"))
+        self.action = action
       else:
         # random
         moves = self.game_bridge.get_all_tree_moves(self.state)
         action = random.choice(moves)
         action = (action, self.player_to_move)
+
 
       new_state = self.game_bridge.execute_move(self.state, action)
 

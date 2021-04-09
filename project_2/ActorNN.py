@@ -64,7 +64,7 @@ class ActorNN:
       model.add(layer)
     for dim in self.config.neurons_per_layer: 
       model.add(keras.layers.Dense(dim, activation=self.config.activation_func))
-      model.add(keras.layers.BatchNormalization())
+      #model.add(keras.layers.BatchNormalization())
       # Batch normalization layers makes the output of each neuron more like a normal gaussian.
       # This often helps w/training time and generalization.
 
@@ -90,6 +90,12 @@ class ActorNN:
     training_samples_dict = self.game_bridge.process_training_samples(RBUF)
     x = training_samples_dict['x']
     y = training_samples_dict['y']
+
+    self.model.fit(x=x, y=y, verbose=0, epochs=self.config.epochs_per_rbuf)
+
+  def fit_no_processing(self, RBUF):
+    x = RBUF['x']
+    y = RBUF['y']
 
     self.model.fit(x=x, y=y, verbose=0, epochs=self.config.epochs_per_rbuf)
   
@@ -146,9 +152,18 @@ class GameBridge:
     # simple fully connected layers that can be set in the config file
     pass
 
+  def get_output_size(self):
+    pass
+
+  def get_input_size(self):
+    pass
+
 class HexBoardNNBridge(GameBridge):
   def __init__(self, config):
     self.config = config
+
+  def get_output_size(self):
+    return self.config.size*self.config.size
 
   def get_pre_layers(self):
     pre_layers = []
@@ -179,15 +194,25 @@ class HexBoardNNBridge(GameBridge):
       pre_layers.append(keras.layers.Dense(new_shape, activation=self.config.activation_func))
       pre_layers.append(keras.layers.Reshape((size + 1, size + 1, 1,)))
       pre_layers.append(
-        keras.layers.Conv2D(256, kernel_size=(5, 5), strides=1, activation=self.config.activation_func, padding='same'))
+        keras.layers.Conv2D(64, kernel_size=(5, 5), strides=1, activation=self.config.activation_func, padding='same'))
       pre_layers.append(
-        keras.layers.Conv2D(128, kernel_size=(5, 5), strides=2, activation=self.config.activation_func, padding='same'))
+        keras.layers.Conv2D(32, kernel_size=(5, 5), strides=2, activation=self.config.activation_func, padding='same'))
       pre_layers.append(
-        keras.layers.Conv2D(64, kernel_size=(2, 2), strides=1, activation=self.config.activation_func, padding='same'))
+        keras.layers.Conv2D(16, kernel_size=(2, 2), strides=1, activation=self.config.activation_func, padding='same'))
       pre_layers.append(
-        keras.layers.Conv2D(32, kernel_size=(2, 2), strides=2, activation=self.config.activation_func, padding='same'))
+        keras.layers.Conv2D(16, kernel_size=(2, 2), strides=2, activation=self.config.activation_func, padding='same'))
       pre_layers.append(keras.layers.Flatten())
     return pre_layers
+
+  def map_to_sample(self, RBUF_pair):
+    board = RBUF_pair[0][0]
+    moves = board.get_all_moves()
+    player_to_move = RBUF_pair[0][1]
+
+    binary_input = self.translate_to_nn_input((moves, player_to_move, board.board))
+    distribution = RBUF_pair[1]
+
+    return np.append(binary_input, distribution)
 
   def process_training_samples(self, RBUF):
     # Get random minibatch of RBUF
@@ -220,6 +245,9 @@ class HexBoardNNBridge(GameBridge):
   
   def get_input_shape(self): 
     return (2 + 2*self.config.size*self.config.size,)
+
+  def get_input_size(self):
+    return 2 + 2*self.config.size*self.config.size
 
   def get_output_layer(self):
     return [keras.layers.Dense(self.config.size * self.config.size, activation='softmax')]
@@ -374,12 +402,12 @@ class HexBoardNNBridgeOnlineTournament(GameBridge):
       new_shape = (size + 1) * (size + 1)
       pre_layers.append(keras.layers.Dense(new_shape, activation=self.config.activation_func))
       pre_layers.append(keras.layers.Reshape((size + 1, size + 1, 1,)))
-      pre_layers.append(keras.layers.Conv2D(256, kernel_size=(5, 5), strides=1, activation=self.config.activation_func, padding='same'))
-      pre_layers.append(keras.layers.Conv2D(128, kernel_size=(5, 5), strides=2, activation=self.config.activation_func, padding='same'))
+      pre_layers.append(keras.layers.Conv2D(32, kernel_size=(5, 5), strides=1, activation=self.config.activation_func, padding='same'))
+      pre_layers.append(keras.layers.Conv2D(16, kernel_size=(5, 5), strides=2, activation=self.config.activation_func, padding='same'))
       pre_layers.append(
-        keras.layers.Conv2D(64, kernel_size=(2, 2), strides=1, activation=self.config.activation_func, padding='same'))
+        keras.layers.Conv2D(8, kernel_size=(2, 2), strides=1, activation=self.config.activation_func, padding='same'))
       pre_layers.append(
-        keras.layers.Conv2D(32, kernel_size=(2, 2), strides=2, activation=self.config.activation_func, padding='same'))
+        keras.layers.Conv2D(8, kernel_size=(2, 2), strides=2, activation=self.config.activation_func, padding='same'))
       pre_layers.append(keras.layers.Flatten())
     return pre_layers
 

@@ -75,7 +75,7 @@ class ReinforcementLearner():
       start_episode = 0
 
     for episode in tqdm(range(start_episode, start_episode + self.config.number_of_episodes), desc="Episode"):
-      RBUF = self.run_episode(RBUF)
+      RBUF = self.run_episode(RBUF, display=False)
       #if self.sim_world_player.get_reward() == 1.0:
       #  self.actor.epsilon_decay()
 
@@ -97,7 +97,7 @@ class ReinforcementLearner():
     # Read the directories from self.save_path if it is not None and check if the last episode is in it.
     
     
-  def run_episode(self, RBUF):
+  def run_episode(self, RBUF, display=False):
     # 1: Make monte carlo tree
     # Get training samples
     # Do action 
@@ -105,16 +105,22 @@ class ReinforcementLearner():
     # If end do training, return
 
     game_state = self.game_bridge.initialize_new_state()
+    if display:
+      sim_world_displayer = ImageDisplay(game_state)
     tree_state = TreeState(self.game_bridge)
-    root_node = TreeNode(self.config, game_state, Player.PLAYER1, tree_state, self.actor, self.actor.epsilon, self.game_bridge)
+    if random.random() > 0.5:
+      root_node = TreeNode(self.config, game_state, Player.PLAYER1, tree_state, self.actor, self.actor.epsilon, self.game_bridge)
+    else:
+      root_node = TreeNode(self.config, game_state, Player.PLAYER2, tree_state, self.actor, self.actor.epsilon,
+                           self.game_bridge)
     while not self.game_bridge.get_win(root_node.state):
       RBUF_pair, next_root = root_node.monte_carlo_action()
       RBUF.append(RBUF_pair)
 
       root_node = next_root
       root_node.reset_parents() # Remove links to rest of tree so automatic memory management can do it's thing
-      if self.config.display:
-        sim_world_displayer = ImageDisplay(root_node.state)
+      if display:
+        sim_world_displayer.set_sim_world(root_node.state)
         sim_world_displayer.display(self.config.frame_delay)
 
     # Train ANET on a random minibatch of cases from RBUF:
@@ -126,7 +132,7 @@ class ReinforcementLearner():
     # self.sim_world_player.display = True
     # self.sim_world_player.force_display_frame()
     RBUF = RBUF_OBJECT(200)
-    self.run_episode(RBUF)
+    self.run_episode(RBUF, display=True)
   
   def load(self, path):
     self.actor.load(path)

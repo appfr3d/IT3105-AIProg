@@ -128,6 +128,7 @@ class Tournament:
     winner = self.game_bridge.get_winner_data(state)
     if self.config.display:
       sim_world_displayer = ImageDisplay(state)
+      sim_world_displayer.display(self.config.frame_delay)
     if winner == 1:
       return Player.PLAYER1
     return Player.PLAYER2

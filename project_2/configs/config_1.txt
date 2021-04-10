@@ -14,7 +14,7 @@ actor_learning_rate : 0.01
 # How ANN definition works: Each game may have some layers which are automatically input before these neurons
 # (ex. our Hex agent has some CONV2D layers and a flatten layer first),
 # and each game may have some layers which are put after (ex. softmax)
-neurons_per_layer : 256, 128, 64, 32, 16
+neurons_per_layer : 128, 64, 32, 16, 8, 8
 
 # ADAGRAD, SGD, RMSPROP, ADAM
 optimizer : ADAM

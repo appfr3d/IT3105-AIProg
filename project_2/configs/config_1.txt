@@ -1,15 +1,15 @@
 size : 6
-model_count : 5
-exploration_constant : 2.0
+model_count : 10
+exploration_constant : 1.0
 
-initial_epsilon : 0.5
-epsilon_decay_rate : 0.99
-epsilon_lower_bound : 0.1
+initial_epsilon : 0.0
+epsilon_decay_rate : 0.0
+epsilon_lower_bound : 0.0
 
-number_of_episodes : 200
-rollouts_per_move : 200
+number_of_episodes : 100
+timeout : 3
 
-actor_learning_rate : 0.01
+actor_learning_rate : 0.001
 
 # How ANN definition works: Each game may have some layers which are automatically input before these neurons
 # (ex. our Hex agent has some CONV2D layers and a flatten layer first),
@@ -22,7 +22,7 @@ optimizer : ADAM
 # LINEAR, RELU, SIGMOID, TANH
 activation_func : RELU
 
-# Suggested size: size*size * either somewhere around 23 specifically or somewhere around a tenth of the total amount of epsiodes
-rbuf_size : 3000
+# Suggested size: size*size * eith er somewhere around 23 specifically or somewhere around a tenth of the total amount of epsiodes
+rbuf_size : 1000
 # How many times the actor NN is trained over the current RBUF
-epochs_per_rbuf : 2
+epochs_per_rbuf : 10

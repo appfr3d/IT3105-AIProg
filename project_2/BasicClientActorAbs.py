@@ -64,14 +64,18 @@ class BasicClientActorAbs(ABC):
         # Receive initial login dialog
         while True:
             msg = self.ssl_sock.recv(1024).decode('utf8')
+            print(msg)
 
             # We are asked to enter our NTNU username
             if "username" in msg:
                 usr_in = input(msg)
+                print("Username sent")
 
             # We are asked to enter our NTNU password
             elif "password" in msg:
-                usr_in = getpass.getpass(msg)
+                print("Input password")
+                usr_in = input(msg)
+                print("password sent")
 
             # If we are successful the server will tell us and we can start a game!
             elif "Welcome" in msg:
@@ -294,6 +298,7 @@ class BasicClientActorAbs(ABC):
                 row = math.floor(index / size)
                 col = index % size
                 empty_locs.append((row, col))
+        print(empty_locs)
         return random.choice(empty_locs)
 
 

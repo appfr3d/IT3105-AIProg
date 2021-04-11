@@ -303,7 +303,9 @@ class HexBoardNNBridge(GameBridge):
     player_to_move = params[1]
     board_representation = params[2]
     move_type = params[3]
-    legal_moves = moves # 2D array with 1 for legal move 0 for not
+    legal_moves = moves # 2D array with True for legal move False for not
+    legal_moves[legal_moves == True] = 1
+    legal_moves[legal_moves == False] = 0
 
     # Mask out non-legal moves
     # crucially it just sets invalid 
@@ -311,7 +313,12 @@ class HexBoardNNBridge(GameBridge):
 
     
     if move_type == 'greedy':
-      index = list(values).index(max(values))
+      while True: # Loop to fix issue with picking illegal moves as best move
+        index = list(values).index(max(values))
+        if legal_moves[index] == 1: # if legal move
+          break
+        else:
+          values[index] = -1
     elif move_type == 'stochastic' or move_type == 'stochastic_pow':
 
       if move_type == 'stochastic_pow':

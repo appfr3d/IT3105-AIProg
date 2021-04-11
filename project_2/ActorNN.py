@@ -303,13 +303,13 @@ class HexBoardNNBridge(GameBridge):
     player_to_move = params[1]
     board_representation = params[2]
     move_type = params[3]
-    legal_moves = moves # 2D array with True for legal move False for not
+    legal_moves = np.asarray(moves).flatten() # 2D array with True for legal move False for not
     legal_moves[legal_moves == True] = 1
     legal_moves[legal_moves == False] = 0
 
     # Mask out non-legal moves
     # crucially it just sets invalid 
-    values = self.mask(nn_output, np.asarray(legal_moves).flatten())
+    values = self.mask(nn_output, legal_moves)
 
     
     if move_type == 'greedy':

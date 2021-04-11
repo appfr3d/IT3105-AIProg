@@ -2,8 +2,8 @@ size : 6
 model_count : 10
 exploration_constant : 1.0
 
-initial_epsilon : 0.0
-epsilon_decay_rate : 0.0
+initial_epsilon : 0.5
+epsilon_decay_rate : 0.99
 epsilon_lower_bound : 0.0
 
 number_of_episodes : 200

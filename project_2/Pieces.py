@@ -1,5 +1,6 @@
 from enum import Enum
 import typing
+from IllegalArgumentException import * 
 
 class Piece:
   """
@@ -45,7 +46,14 @@ class Peg(Piece):
     self.state = newState
 
   def player1_place_peg(self):
-    self.change_state(PegState.PLAYER1)
-
+    if self.state == PegState.PLAYER1 or self.state == PegState.PLAYER2:
+      raise IllegalArgumentException("Peg is already given a player-state")
+    else:
+      self.change_state(PegState.PLAYER1)
+      
+      
   def player2_place_peg(self):
-    self.change_state(PegState.PLAYER2)
+    if self.state == PegState.PLAYER1 or self.state == PegState.PLAYER2:
+      raise IllegalArgumentException("Peg is already given a player-state")
+    else:
+      self.change_state(PegState.PLAYER2)

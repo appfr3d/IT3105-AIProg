@@ -6,10 +6,10 @@ initial_epsilon : 0.0
 epsilon_decay_rate : 0.0
 epsilon_lower_bound : 0.0
 
-number_of_episodes : 100
+number_of_episodes : 200
 timeout : 3
 
-actor_learning_rate : 0.001
+actor_learning_rate : 0.005
 
 # How ANN definition works: Each game may have some layers which are automatically input before these neurons
 # (ex. our Hex agent has some CONV2D layers and a flatten layer first),

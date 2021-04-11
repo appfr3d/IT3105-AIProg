@@ -138,10 +138,14 @@ elif config.run_type == "tournament_complete":
   # Read config file
   config.read_config(os.path.join(choosen_tournament_folder, 'config_used.txt'))
 
-  for action_type in ['greedy', 'e-greedy', 'first-random-greedy', 'stochastic', 'stochastic_pow']:
+  for action_type in ['greedy',
+                      'e-greedy',
+                      'first-random-greedy',
+                      'stochastic',
+                      'stochastic_pow']:
     config.tournament_action_mode = action_type
     game_bridge = HexGameBridge(config)
-    nn_bridge = HexBoardNNBridge(config)
+    nn_bridge = HexBoardNNBridge(conf+ +ig)
 
     tourney = Tournament(config, choosen_tournament_folder, game_bridge, nn_bridge)
     tourney.run_tourney()

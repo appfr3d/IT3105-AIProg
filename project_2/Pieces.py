@@ -45,7 +45,11 @@ class Peg(Piece):
     self.state = newState
 
   def player1_place_peg(self):
+    if not self.state == PegState.EMPTY:
+      raise Exception("Illegal Argument")
     self.change_state(PegState.PLAYER1)
 
   def player2_place_peg(self):
+    if not self.state == PegState.EMPTY:
+      raise Exception("Illegal Argument")
     self.change_state(PegState.PLAYER2)

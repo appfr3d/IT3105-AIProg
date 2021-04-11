@@ -210,7 +210,9 @@ class TreeNode:
   def increment_edge_visit_count(self, parent):
     self.edge_visit_counts[parent.hash] += 1
 
-  def rollout(self, force_rollout=False):
+  def rollout(self, force_rollout=False, depth=0):
+    if depth > self.config.size*self.config.size:
+      print(depth)
     # If there are no more possible children/ungenerated children
     if self.game_bridge.get_win(self.state):
       # IF there are no more moves there exists a winner
@@ -262,9 +264,9 @@ class TreeNode:
       best_child = children[child_index]
       # Move to next child
       if leaf_node:
-        evaluation = best_child.rollout(force_rollout=True)
+        evaluation = best_child.rollout(force_rollout=True, depth=depth+1)
       else:
-        evaluation = best_child.rollout()
+        evaluation = best_child.rollout(depth=depth+1)
       self.evaluation_value += evaluation
       self.visit_count += 1
       best_child.increment_edge_visit_count(self)
@@ -295,7 +297,7 @@ class TreeNode:
       child = TreeNode(self.config, new_state, player_to_move, self.tree_state, self.default_policy, self.epsilon,
                        self.game_bridge)
 
-      evaluation = child.rollout(force_rollout=True)
+      evaluation = child.rollout(force_rollout=True, depth=depth+1)
       self.evaluation_value += evaluation
       self.visit_count += 1
       return evaluation

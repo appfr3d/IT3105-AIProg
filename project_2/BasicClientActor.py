@@ -22,6 +22,7 @@ class BasicClientActor(BasicClientActorAbs):
         oht_model_dir = os.path.join(CURRENT_DIR, 'tournament_models', 'oht_model')
         model_dirs = [d for d in os.listdir(oht_model_dir) if os.path.isdir(os.path.join(oht_model_dir, d))]
         model_path = os.path.join(oht_model_dir, model_dirs[-1])
+        print(model_path)
 
         self.actor = ActorNN(config, nn_bridge, model_path)
 

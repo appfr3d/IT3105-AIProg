@@ -194,13 +194,13 @@ class HexBoardNNBridge(GameBridge):
       pre_layers.append(keras.layers.Dense(new_shape, activation=self.config.activation_func))
       pre_layers.append(keras.layers.Reshape((size + 1, size + 1, 1,)))
       pre_layers.append(
-        keras.layers.Conv2D(64, kernel_size=(5, 5), strides=1, activation=self.config.activation_func, padding='same'))
+        keras.layers.Conv2D(256, kernel_size=(5, 5), strides=1, activation=self.config.activation_func, padding='same'))
       pre_layers.append(
-        keras.layers.Conv2D(32, kernel_size=(5, 5), strides=2, activation=self.config.activation_func, padding='same'))
+        keras.layers.Conv2D(126, kernel_size=(5, 5), strides=2, activation=self.config.activation_func, padding='same'))
       pre_layers.append(
-        keras.layers.Conv2D(16, kernel_size=(2, 2), strides=1, activation=self.config.activation_func, padding='same'))
+        keras.layers.Conv2D(64, kernel_size=(2, 2), strides=1, activation=self.config.activation_func, padding='same'))
       pre_layers.append(
-        keras.layers.Conv2D(16, kernel_size=(2, 2), strides=2, activation=self.config.activation_func, padding='same'))
+        keras.layers.Conv2D(64, kernel_size=(2, 2), strides=2, activation=self.config.activation_func, padding='same'))
       pre_layers.append(keras.layers.Flatten())
     return pre_layers
 
@@ -303,29 +303,47 @@ class HexBoardNNBridge(GameBridge):
     player_to_move = params[1]
     board_representation = params[2]
     move_type = params[3]
-    legal_moves = moves # 2D array with 1 for legal move 0 for not
+    legal_moves = np.asarray(moves).flatten() # 2D array with True for legal move False for not
+    legal_moves[legal_moves == True] = 1
+    legal_moves[legal_moves == False] = 0
 
     # Mask out non-legal moves
     # crucially it just sets invalid 
-    values = self.mask(nn_output, np.asarray(legal_moves).flatten())
+    values = self.mask(nn_output, legal_moves)
 
     
     if move_type == 'greedy':
-      index = list(values).index(max(values))
+      while True: # Loop to fix issue with picking illegal moves as best move
+        index = list(values).index(max(values))
+        if legal_moves[index] == 1: # if legal move
+          break
+        else:
+          values[index] = -1
     elif move_type == 'stochastic' or move_type == 'stochastic_pow':
 
       if move_type == 'stochastic_pow':
         # Make every number be 1 + num to avoid nan problems
         for indx in range(len(values)):
           values[indx] += 1
-        # Increase probability of higher numbers by raisung them to the power of 2
+        # Increase probability of higher numbers by raising them to the power of 2
         for indx in range(len(values)):
-          values[indx] = values[indx]**10
+          values[indx] = values[indx]**2
 
       # normalize
       the_sum = np.sum(values)
+
+      if the_sum == 0:  # If the nn predicts very low values for every move that is legal the sum can become 0. If this happens, return the first legal move
+        index = 0
+        moves = np.asarray(legal_moves).flatten()
+        while True:
+          if moves[index] == True or moves[index] == 1:
+            pos = (index // self.config.size, index % self.config.size)
+            return (pos, player_to_move)
+          index += 1
+
       for indx in range(len(values)):
         values[indx] = values[indx]/the_sum
+
 
       values = np.insert(values, 0, [0.0])
 
@@ -361,7 +379,14 @@ class HexBoardNNBridge(GameBridge):
       if num_possible_moves == self.config.size**2:
         index = random.randint(0, values.shape[0]-1)
       else:
-        index = list(values).index(max(values))
+        if max(values) != 0:
+          index = list(values).index(max(values))
+        else:
+          index = 0
+          while True:
+            if moves[index] == True or moves[index] == 1:
+              break
+            index += 1
 
     pos = (index // self.config.size, index % self.config.size)
 
@@ -492,5 +517,7 @@ class HexBoardNNBridgeOnlineTournament(GameBridge):
     Map values to 0 if mask_values at elementwise same position is 0, or to original value of mask_values is 1
     """
     return np.multiply(values, mask_values)
+
+
 
     

@@ -1,13 +1,13 @@
 size : 6
-model_count : 10
+model_count : 40
 exploration_constant : 1.0
 
-initial_epsilon : 0.5
-epsilon_decay_rate : 0.99
-epsilon_lower_bound : 0.0
+initial_epsilon : 0.1
+epsilon_decay_rate : 1.0
+epsilon_lower_bound : 0.1
 
-number_of_episodes : 200
-timeout : 3
+number_of_episodes : 1000
+timeout : 2
 
 actor_learning_rate : 0.005
 
@@ -19,10 +19,10 @@ neurons_per_layer : 128, 64, 32, 16, 8, 8
 # ADAGRAD, SGD, RMSPROP, ADAM
 optimizer : ADAM
 
-# LINEAR, RELU, SIGMOID, TANH
+# LINEAR, RELU, SIGMOID, TANH, or LEAKYRELU,learning_rate
 activation_func : RELU
 
 # Suggested size: size*size * eith er somewhere around 23 specifically or somewhere around a tenth of the total amount of epsiodes
-rbuf_size : 1000
+rbuf_size : 10000000000000000000
 # How many times the actor NN is trained over the current RBUF
 epochs_per_rbuf : 10

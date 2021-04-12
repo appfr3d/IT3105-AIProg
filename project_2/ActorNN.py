@@ -63,7 +63,7 @@ class ActorNN:
     for layer in pre_layers:
       model.add(layer)
     for dim in self.config.neurons_per_layer: 
-      model.add(keras.layers.Dense(dim, activation=self.config.activation_func))
+      model.add(keras.layers.Dense(dim, activation=self.config.activation_func, kernel_regularizer=keras.regularizers.l2()))
       #model.add(keras.layers.BatchNormalization())
       # Batch normalization layers makes the output of each neuron more like a normal gaussian.
       # This often helps w/training time and generalization.
@@ -80,7 +80,6 @@ class ActorNN:
   def eval(self, param_tuple):
     # What is called by monte-carlo tree node
     inputs = self.game_bridge.translate_to_nn_input(param_tuple)
-    
     output = self.model(inputs).numpy()
 
     return self.game_bridge.post_process(output, param_tuple)
@@ -190,17 +189,23 @@ class HexBoardNNBridge(GameBridge):
         y *= 2
       pre_layers.append(keras.layers.Flatten())
     else:
-      new_shape = (size + 1) * (size + 1)
+      new_shape = (2*size + 1) * (2*size + 1)
       pre_layers.append(keras.layers.Dense(new_shape, activation=self.config.activation_func))
-      pre_layers.append(keras.layers.Reshape((size + 1, size + 1, 1,)))
+      pre_layers.append(keras.layers.Reshape((2*size + 1, 2*size + 1, 1,)))
       pre_layers.append(
-        keras.layers.Conv2D(256, kernel_size=(5, 5), strides=1, activation=self.config.activation_func, padding='same'))
+        keras.layers.Conv2D(512, kernel_size=(5, 5), strides=2, activation=self.config.activation_func, padding='same', kernel_regularizer=keras.regularizers.l2()))
       pre_layers.append(
-        keras.layers.Conv2D(126, kernel_size=(5, 5), strides=2, activation=self.config.activation_func, padding='same'))
+        keras.layers.Conv2D(512, kernel_size=(5, 5), strides=2, activation=self.config.activation_func, padding='same', kernel_regularizer=keras.regularizers.l2()))
       pre_layers.append(
-        keras.layers.Conv2D(64, kernel_size=(2, 2), strides=1, activation=self.config.activation_func, padding='same'))
+        keras.layers.Conv2D(256, kernel_size=(2, 2), strides=1, activation=self.config.activation_func, padding='same', kernel_regularizer=keras.regularizers.l2()))
       pre_layers.append(
-        keras.layers.Conv2D(64, kernel_size=(2, 2), strides=2, activation=self.config.activation_func, padding='same'))
+        keras.layers.Conv2D(128, kernel_size=(2, 2), strides=1, activation=self.config.activation_func,
+                            padding='same', kernel_regularizer=keras.regularizers.l2()))
+      pre_layers.append(
+        keras.layers.Conv2D(64, kernel_size=(2, 2), strides=1, activation=self.config.activation_func,
+                            padding='same', kernel_regularizer=keras.regularizers.l2()))
+      pre_layers.append(
+        keras.layers.Conv2D(64, kernel_size=(2, 2), strides=2, activation=self.config.activation_func, padding='same', kernel_regularizer=keras.regularizers.l2()))
       pre_layers.append(keras.layers.Flatten())
     return pre_layers
 
@@ -384,7 +389,7 @@ class HexBoardNNBridge(GameBridge):
         else:
           index = 0
           while True:
-            if moves[index] == True or moves[index] == 1:
+            if legal_moves[index] == True or legal_moves[index] == 1:
               break
             index += 1
 

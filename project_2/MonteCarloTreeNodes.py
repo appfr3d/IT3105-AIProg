@@ -153,6 +153,7 @@ class HexGameBridge(GameBridge):
     return hash_val
 
   def get_all_nn_moves(self, state):
+
     return state.get_all_moves()[0]
 
 class TreeNode:
@@ -174,8 +175,10 @@ class TreeNode:
     # we can just store which action the NN has taken previously to save computation time
 
   def monte_carlo_action(self):
-    time_start = time.time()
+    """ time_start = time.time()
     while time.time() - time_start < self.config.timeout:
+      self.rollout()"""
+    for num in range(self.config.rollouts_per_move):
       self.rollout()
     
     distribution = [0 for x in range(self.game_bridge.get_max_possible_actions())]
@@ -311,7 +314,8 @@ class TreeNode:
     parent_hash = parent.hash
     # self.visit_count must be > 0
     if self.visit_count == 0:
-      return 100000 # Always visit unexplored nodes
+      # Always visit unexplored nodes. Priors favoring exploration often lead to better results.
+      return 100000
     elif parent.visit_count == 0:
       return self.config.exploration_constant
     elif self.edge_visit_counts[parent_hash] == 0:

@@ -124,7 +124,8 @@ class ReinforcementLearner():
         sim_world_displayer.display(self.config.frame_delay)
 
     # Train ANET on a random minibatch of cases from RBUF:
-    self.actor.fit(RBUF.list)
+    minibatch = RBUF.get_minibatch(32)
+    self.actor.fit(minibatch)
     return RBUF
 
   def display_game(self):

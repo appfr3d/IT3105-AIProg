@@ -53,3 +53,11 @@ class Peg(Piece):
     if not self.state == PegState.EMPTY:
       raise Exception("Illegal Argument")
     self.change_state(PegState.PLAYER2)
+
+  def __str__(self):
+    if self.state == PegState.PLAYER1:
+      return "PLAYER1"
+    elif self.state == PegState.PLAYER2:
+      return "PLAYER2"
+    else:
+      return "EMPTY"

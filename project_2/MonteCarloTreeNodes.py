@@ -175,13 +175,13 @@ class TreeNode:
     # we can just store which action the NN has taken previously to save computation time
 
   def monte_carlo_action(self):
-    """    time_start = time.time()
+    """time_start = time.time()
     while time.time() - time_start < self.config.timeout:
-      self.rollout()
-    """
+      self.rollout()"""
+
     for num in range(self.config.rollouts_per_move):
       self.rollout()
-    
+
     distribution = [0 for x in range(self.game_bridge.get_max_possible_actions())]
     child_dist_map = [None for x in range(self.game_bridge.get_max_possible_actions())]
 

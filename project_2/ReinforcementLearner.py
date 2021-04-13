@@ -37,6 +37,10 @@ class RBUF_OBJECT():
     else:
       return random.choices(population=self.list, k=32)
 
+  def clear(self):
+    self.list = []
+    self.index = 0
+
 class ReinforcementLearner():
   def __init__(self, config: ConfigReader, nn_bridge, game_bridge, save_path=None, model_path=None):
     """
@@ -125,6 +129,7 @@ class ReinforcementLearner():
 
     # Train ANET on a random minibatch of cases from RBUF:
     minibatch = RBUF.get_minibatch(32)
+    RBUF.clear()
     self.actor.fit(minibatch)
     return RBUF
 

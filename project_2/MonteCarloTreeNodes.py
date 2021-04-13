@@ -175,9 +175,10 @@ class TreeNode:
     # we can just store which action the NN has taken previously to save computation time
 
   def monte_carlo_action(self):
-    """ time_start = time.time()
+    """    time_start = time.time()
     while time.time() - time_start < self.config.timeout:
-      self.rollout()"""
+      self.rollout()
+    """
     for num in range(self.config.rollouts_per_move):
       self.rollout()
     
@@ -195,7 +196,14 @@ class TreeNode:
     distribution = np.asarray(distribution)/whole_sum
     RBUF_pair = ((self.state, self.player_to_move), distribution)
 
-    best_move = list(distribution).index(max(distribution))
+    if random.random() >= self.epsilon:
+      while True:
+        best_move = random.randint(0, len(distribution)-1)
+        # If the move is not illegal (i.e. for sufficient amount of rollouts only illegal moves will be unexplored)
+        if not distribution[best_move] == 0:
+          break
+    else:
+      best_move = list(distribution).index(max(distribution))
     next_root = child_dist_map[best_move]
 
     return RBUF_pair, next_root

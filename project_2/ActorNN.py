@@ -193,19 +193,19 @@ class HexBoardNNBridge(GameBridge):
       pre_layers.append(keras.layers.Dense(new_shape, activation=self.config.activation_func))
       pre_layers.append(keras.layers.Reshape((2*size + 1, 2*size + 1, 1,)))
       pre_layers.append(
-        keras.layers.Conv2D(512, kernel_size=(5, 5), strides=2, activation=self.config.activation_func, padding='same', kernel_regularizer=keras.regularizers.l2()))
+        keras.layers.Conv2D(8, kernel_size=(5, 5), strides=2, activation=self.config.activation_func, padding='same', kernel_regularizer=keras.regularizers.l2()))
       pre_layers.append(
-        keras.layers.Conv2D(512, kernel_size=(5, 5), strides=2, activation=self.config.activation_func, padding='same', kernel_regularizer=keras.regularizers.l2()))
+        keras.layers.Conv2D(8, kernel_size=(5, 5), strides=2, activation=self.config.activation_func, padding='same', kernel_regularizer=keras.regularizers.l2()))
       pre_layers.append(
-        keras.layers.Conv2D(256, kernel_size=(2, 2), strides=1, activation=self.config.activation_func, padding='same', kernel_regularizer=keras.regularizers.l2()))
+        keras.layers.Conv2D(8, kernel_size=(5, 5), strides=2, activation=self.config.activation_func, padding='same', kernel_regularizer=keras.regularizers.l2()))
       pre_layers.append(
-        keras.layers.Conv2D(128, kernel_size=(2, 2), strides=1, activation=self.config.activation_func,
+        keras.layers.Conv2D(8, kernel_size=(5, 5), strides=2, activation=self.config.activation_func,
                             padding='same', kernel_regularizer=keras.regularizers.l2()))
       pre_layers.append(
-        keras.layers.Conv2D(64, kernel_size=(2, 2), strides=1, activation=self.config.activation_func,
+        keras.layers.Conv2D(8, kernel_size=(5, 5), strides=2, activation=self.config.activation_func,
                             padding='same', kernel_regularizer=keras.regularizers.l2()))
       pre_layers.append(
-        keras.layers.Conv2D(64, kernel_size=(2, 2), strides=2, activation=self.config.activation_func, padding='same', kernel_regularizer=keras.regularizers.l2()))
+        keras.layers.Conv2D(8, kernel_size=(5, 5), strides=2, activation=self.config.activation_func, padding='same', kernel_regularizer=keras.regularizers.l2()))
       pre_layers.append(keras.layers.Flatten())
     return pre_layers
 

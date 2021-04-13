@@ -73,7 +73,7 @@ class ReinforcementLearner():
         e *= self.config.epsilon_decay_rate
       self.actor.epsilon = max(e, self.config.epsilon_lower_bound)
 
-      print('Starting traingin on episode ' + str(start_episode))
+      print('Starting training on episode ' + str(start_episode))
 
     else:
       start_episode = 0

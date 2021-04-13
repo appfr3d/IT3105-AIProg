@@ -336,7 +336,7 @@ class HexBoardNNBridge(GameBridge):
         index = 0
         moves = np.asarray(legal_moves).flatten()
         while True:
-          if moves[index] == True or moves[index] == 1:
+          if legal_moves[index] == True or legal_moves[index] == 1:
             pos = (index // self.config.size, index % self.config.size)
             return (pos, player_to_move)
           index += 1
@@ -384,7 +384,7 @@ class HexBoardNNBridge(GameBridge):
         else:
           index = 0
           while True:
-            if moves[index] == True or moves[index] == 1:
+            if legal_moves[index] == True or legal_moves[index] == 1:
               break
             index += 1
 

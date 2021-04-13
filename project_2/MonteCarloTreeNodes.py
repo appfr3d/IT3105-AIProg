@@ -179,6 +179,7 @@ class TreeNode:
     while time.time() - time_start < self.config.timeout:
       self.rollout()
     """
+
     for num in range(self.config.rollouts_per_move):
       self.rollout()
     """    

@@ -63,7 +63,7 @@ class ActorNN:
     for layer in pre_layers:
       model.add(layer)
     for dim in self.config.neurons_per_layer: 
-      model.add(keras.layers.Dense(dim, activation=self.config.activation_func, kernel_regularizer=keras.regularizers.l2()))
+      model.add(keras.layers.Dense(dim, activation=self.config.activation_func))
       #model.add(keras.layers.BatchNormalization())
       # Batch normalization layers makes the output of each neuron more like a normal gaussian.
       # This often helps w/training time and generalization.
@@ -193,19 +193,19 @@ class HexBoardNNBridge(GameBridge):
       pre_layers.append(keras.layers.Dense(new_shape, activation=self.config.activation_func))
       pre_layers.append(keras.layers.Reshape((2*size + 1, 2*size + 1, 1,)))
       pre_layers.append(
-        keras.layers.Conv2D(8, kernel_size=(5, 5), strides=2, activation=self.config.activation_func, padding='same', kernel_regularizer=keras.regularizers.l2()))
+        keras.layers.Conv2D(32, kernel_size=(5, 5), strides=2, activation=self.config.activation_func, padding='same'))
       pre_layers.append(
-        keras.layers.Conv2D(8, kernel_size=(5, 5), strides=2, activation=self.config.activation_func, padding='same', kernel_regularizer=keras.regularizers.l2()))
+        keras.layers.Conv2D(32, kernel_size=(5, 5), strides=2, activation=self.config.activation_func, padding='same'))
       pre_layers.append(
-        keras.layers.Conv2D(8, kernel_size=(5, 5), strides=2, activation=self.config.activation_func, padding='same', kernel_regularizer=keras.regularizers.l2()))
+        keras.layers.Conv2D(32, kernel_size=(5, 5), strides=2, activation=self.config.activation_func, padding='same'))
       pre_layers.append(
-        keras.layers.Conv2D(8, kernel_size=(5, 5), strides=2, activation=self.config.activation_func,
+        keras.layers.Conv2D(32, kernel_size=(5, 5), strides=2, activation=self.config.activation_func,
                             padding='same', kernel_regularizer=keras.regularizers.l2()))
       pre_layers.append(
-        keras.layers.Conv2D(8, kernel_size=(5, 5), strides=2, activation=self.config.activation_func,
+        keras.layers.Conv2D(32, kernel_size=(5, 5), strides=2, activation=self.config.activation_func,
                             padding='same', kernel_regularizer=keras.regularizers.l2()))
       pre_layers.append(
-        keras.layers.Conv2D(8, kernel_size=(5, 5), strides=2, activation=self.config.activation_func, padding='same', kernel_regularizer=keras.regularizers.l2()))
+        keras.layers.Conv2D(32, kernel_size=(5, 5), strides=2, activation=self.config.activation_func, padding='same'))
       pre_layers.append(keras.layers.Flatten())
     return pre_layers
 

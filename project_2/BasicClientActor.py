@@ -59,6 +59,7 @@ class BasicClientActor(BasicClientActorAbs):
         :return
         """
         self.starting_player = start_player
+        print(start_player)
 
     def handle_game_over(self, winner, end_state):
         """

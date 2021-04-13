@@ -1,4 +1,6 @@
 import os
+import random
+
 from tqdm import tqdm
 from ReinforcementLearner import ReinforcementLearner
 from ActorNN import HexBoardNNBridge
@@ -20,14 +22,16 @@ class Tournament:
   def run_tourney(self):
     games_per_series = self.config.games_per_series
     agent_names = [a for a in os.listdir(self.model_save_path) if os.path.isdir(os.path.join(self.model_save_path, a))]
-  
-    agent_dict = {}
+    agent_dict = {"Randy Random":"Randy Random"}
     agent_score_dict = {}
 
     # Make a dictionary for model names - agent
     for name in agent_names:
       rl = ReinforcementLearner(self.config, self.nn_bridge, self.game_bridge, self.model_save_path, self.model_save_path + '/' + name)
       agent_dict[name] = rl
+
+    agent_names.append("Randy Random")
+
     
     # Initialize agent_score_dicts
     for name in agent_names:
@@ -115,14 +119,22 @@ class Tournament:
         sim_world_displayer.display(self.config.frame_delay)
       if player_to_move == Player.PLAYER1:
         # player1
-        moves = self.game_bridge.get_all_nn_moves(state)
-        action = agent1.eval((moves, player_to_move, self.game_bridge.get_state(state), action_mode))
+        if agent1 == "Randy Random":
+          moves = self.game_bridge.get_all_tree_moves(state)
+          action = (random.choice(moves), player_to_move)
+        else:
+          moves = self.game_bridge.get_all_nn_moves(state)
+          action = agent1.eval((moves, player_to_move, self.game_bridge.get_state(state), action_mode))
         state = self.game_bridge.execute_move(state, action)
         player_to_move = Player.PLAYER2
       else: 
         # player2
-        moves = self.game_bridge.get_all_nn_moves(state)
-        action = agent2.eval((moves, player_to_move, self.game_bridge.get_state(state), action_mode))
+        if agent2 == "Randy Random":
+          moves = self.game_bridge.get_all_tree_moves(state)
+          action = (random.choice(moves), player_to_move)
+        else:
+          moves = self.game_bridge.get_all_nn_moves(state)
+          action = agent2.eval((moves, player_to_move, self.game_bridge.get_state(state), action_mode))
         state = self.game_bridge.execute_move(state, action)
         player_to_move = Player.PLAYER1
     winner = self.game_bridge.get_winner_data(state)

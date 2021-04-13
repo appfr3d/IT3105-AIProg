@@ -270,7 +270,7 @@ class HexGameBoard(HexBoard):
       for col in range(self.size):
         if legal_move_board[row][col] == True:
           possible_move_list.append((row, col))
-    """    
+    """
     return legal_move_board, possible_move_list
   
   def board_to_connection_index(self, from_position):

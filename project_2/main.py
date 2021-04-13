@@ -145,7 +145,7 @@ elif config.run_type == "tournament_complete":
                       'stochastic_pow']:
     config.tournament_action_mode = action_type
     game_bridge = HexGameBridge(config)
-    nn_bridge = HexBoardNNBridge(conf+ +ig)
+    nn_bridge = HexBoardNNBridge(config)
 
     tourney = Tournament(config, choosen_tournament_folder, game_bridge, nn_bridge)
     tourney.run_tourney()

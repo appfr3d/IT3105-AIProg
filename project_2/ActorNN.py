@@ -189,23 +189,24 @@ class HexBoardNNBridge(GameBridge):
         y *= 2
       pre_layers.append(keras.layers.Flatten())
     else:
-      new_shape = (2*size + 1) * (2*size + 1)
-      pre_layers.append(keras.layers.Dense(new_shape, activation=self.config.activation_func))
-      pre_layers.append(keras.layers.Reshape((2*size + 1, 2*size + 1, 1,)))
       pre_layers.append(
-        keras.layers.Conv2D(32, kernel_size=(5, 5), strides=2, activation=self.config.activation_func, padding='same'))
+        keras.layers.Conv2D(128, kernel_size=(5, 5), strides=1, activation=self.config.activation_func, padding='same', use_bias=True))
       pre_layers.append(
-        keras.layers.Conv2D(32, kernel_size=(5, 5), strides=2, activation=self.config.activation_func, padding='same'))
+        keras.layers.Conv2D(128, kernel_size=(3, 3), strides=1, activation=self.config.activation_func, padding='same', use_bias=True))
       pre_layers.append(
-        keras.layers.Conv2D(32, kernel_size=(5, 5), strides=2, activation=self.config.activation_func, padding='same'))
+        keras.layers.Conv2D(128, kernel_size=(3, 3), strides=1, activation=self.config.activation_func, padding='same', use_bias=True))
       pre_layers.append(
-        keras.layers.Conv2D(32, kernel_size=(5, 5), strides=2, activation=self.config.activation_func,
-                            padding='same', kernel_regularizer=keras.regularizers.l2()))
+        keras.layers.Conv2D(128, kernel_size=(3, 3), strides=1, activation=self.config.activation_func, padding='same',
+                            use_bias=True))
       pre_layers.append(
-        keras.layers.Conv2D(32, kernel_size=(5, 5), strides=2, activation=self.config.activation_func,
-                            padding='same', kernel_regularizer=keras.regularizers.l2()))
+        keras.layers.Conv2D(128, kernel_size=(3, 3), strides=1, activation=self.config.activation_func, padding='same',
+                            use_bias=True))
       pre_layers.append(
-        keras.layers.Conv2D(32, kernel_size=(5, 5), strides=2, activation=self.config.activation_func, padding='same'))
+        keras.layers.Conv2D(128, kernel_size=(3, 3), strides=1, activation=self.config.activation_func, padding='same',
+                            use_bias=True))
+      pre_layers.append(
+        keras.layers.Conv2D(1, kernel_size=(1, 1), strides=1, activation=self.config.activation_func, padding='same',
+                            use_bias=True))
       pre_layers.append(keras.layers.Flatten())
     return pre_layers
 
@@ -239,7 +240,7 @@ class HexBoardNNBridge(GameBridge):
     
     # For now, just return every case
     training_samples = [map_to_sample(RBUF_pair) for RBUF_pair in RBUF]
-    x = np.zeros((len(training_samples), len(training_samples[0][0][0])))
+    x = np.zeros((len(training_samples), 5, self.config.size, self.config.size))
     y = np.zeros((len(training_samples), len(training_samples[0][1])))
 
     for num in range(len(training_samples)):
@@ -249,10 +250,10 @@ class HexBoardNNBridge(GameBridge):
     return {'x':x, 'y':y}
   
   def get_input_shape(self): 
-    return (2 + 2*self.config.size*self.config.size,)
+    return (5, self.config.size, self.config.size,)
 
   def get_input_size(self):
-    return 2 + 2*self.config.size*self.config.size
+    return 5*self.config.size*self.config.size
 
   def get_output_layer(self):
     return [keras.layers.Dense(self.config.size * self.config.size, activation='softmax')]
@@ -266,40 +267,24 @@ class HexBoardNNBridge(GameBridge):
     player_to_move = params[1]
     board_representation = params[2]
 
-    inputs = np.zeros(shape=(1, 2 + 2 * self.config.size*self.config.size))
+    inputs = np.zeros(shape=(1, 5, self.config.size, self.config.size))
     index = 0
     if player_to_move == Player.PLAYER1:
-      # 01 means that player1 can place peg at a given position
-      inputs[0, index] = 0
-      index += 1
-      inputs[0, index] = 1
-      index += 1
+      inputs[0][0] = np.ones(shape=(self.config.size, self.config.size))
     else:
       # 10 means that player2 can place peg at a given position
-      inputs[0, index] = 1
-      index += 1
-      inputs[0, index] = 0
-      index += 1
+      inputs[0][1] = np.ones(shape=(self.config.size, self.config.size))
     
     for row in range(len(board_representation)):
       for col in range(len(board_representation[0])):
         val = board_representation[row][col]
+        index += 1
         if val.state == PegState.PLAYER1:
-          inputs[0, index] = 0
-          index += 1
-          inputs[0, index] = 1
-          index += 1
+          inputs[0][2, row, col] = 1
         elif val.state == PegState.PLAYER2:
-          inputs[0, index] = 1
-          index += 1
-          inputs[0, index] = 0
-          index += 1
-        else: 
-          inputs[0, index] = 0
-          index += 1
-          inputs[0, index] = 0
-          index += 1
-    
+          inputs[0][3, row, col] = 1
+        else:
+          inputs[0][4, row, col] = 1
     return inputs
   
   def post_process(self, nn_output, params): 
@@ -484,19 +469,24 @@ class HexBoardNNBridgeOnlineTournament(GameBridge):
     moves = params
     rep = []
 
-    for datapoint in moves:
-      if datapoint == 0:
-        rep.append(0)
-        rep.append(0)
-      elif datapoint == 1:
-        rep.append(0)
-        rep.append(1)
-      elif datapoint == 2:
-        rep.append(1)
-        rep.append(0)
-    
-    return np.asarray(rep).reshape(1, len(rep))
-  
+    inputs = np.zeros(shape=(1, 5, self.config.size, self.config.size))
+    if moves[0] == 1:
+      inputs[0][0] = np.ones(shape=(self.config.size, self.config.size))
+    else:
+      # 10 means that player2 can place peg at a given position
+      inputs[0][1] = np.ones(shape=(self.config.size, self.config.size))
+    moves = moves[1:]
+    for indx in range(0, len(moves)):
+      val = moves[indx]
+      if val == 1:
+        inputs[0][2, indx // self.config.size, indx % self.config.size] = 1
+      elif val == 2:
+        inputs[0][3, indx // self.config.size, indx % self.config.size] = 1
+      else:
+        inputs[0][4, indx // self.config.size, indx % self.config.size] = 1
+    return inputs
+
+
   def post_process(self, nn_output, params): 
     nn_output = nn_output.reshape((self.config.size*self.config.size,))
     moves = np.asarray(params[1:])  # First one is who gets to move

@@ -51,6 +51,7 @@ class BasicClientActor(BasicClientActorAbs):
         :return
 
         """
+        print("series ID: ", series_id)
         self.series_id = series_id
 
     def handle_game_start(self, start_player):

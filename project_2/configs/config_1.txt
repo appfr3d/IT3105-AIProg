@@ -1,16 +1,16 @@
 size : 6
-model_count : 1000
+model_count : 125
 exploration_constant : 1.0
 
 initial_epsilon : 1.0
 epsilon_decay_rate : 0.8
 epsilon_lower_bound : 0.2
 
-number_of_episodes : 1000
-rollouts_per_move : 20
+number_of_episodes : 500
+timeout : 3
 
 
-actor_learning_rate : 0.0001
+actor_learning_rate : 0.001
 
 # How ANN definition works: Each game may have some layers which are automatically input before these neurons
 # (ex. our Hex agent has some CONV2D layers and a flatten layer first),

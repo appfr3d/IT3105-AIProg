@@ -6,8 +6,8 @@ initial_epsilon : 0.7
 epsilon_decay_rate : 0.8
 epsilon_lower_bound : 0.1
 
-number_of_episodes : 4
-timeout : 1
+number_of_episodes : 15
+timeout : 0.1
 
 actor_learning_rate : 0.005
 

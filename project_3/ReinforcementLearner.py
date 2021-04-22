@@ -49,6 +49,7 @@ class ReinforcementLearner():
     self.display_log(savepath)
     
   def run_episode(self):
+    self.sim_world_player.reset_state()
     # Reset eligibility
     self.actor.reset_eligibility() 
 

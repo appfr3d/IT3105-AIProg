@@ -11,7 +11,6 @@ from tqdm import tqdm
 # Toggle for random testing or not
 is_random_testing = False
 
-
 if not is_random_testing:
   config = ConfigReader()
   player = CarPlayer(config)
@@ -38,25 +37,6 @@ else:
     learner = ReinforcementLearner(player, config)
 
     learner.fit()
-    pglg = np.asarray(learner.peg_log)
-    save_file = open('config_random.txt', 'a')
-    save_file.write(str(len(list(pglg[pglg == 1000]))) + ", ")
-    save_file.write(str(config.critic_learning_rate) + ", ")
-    save_file.write(str(config.critic_discount_factor) + ", ")
-    save_file.write(str(config.initial_epsilon) + ", ")
-    save_file.write(str(config.epsilon_decay_rate) + ", ")
-    save_file.write(str(config.win_reward) + ", ")
-    save_file.write(str(config.base_reward) + ", ")
-    save_file.write(str(config.tiles) + ", ")
-    save_file.write(str(config.tiles_per_tile) + ", ")
-    save_file.write(str(config.critic_nn_dimentions) + ", ")
-    save_file.write(str(config.y) + ", ")
-    save_file.write(str(config.velocity) + ", ")
-    save_file.write(str(config.tiling_offset) + ", ")
-    save_file.write("\n")
-    save_file.close()
-
-
 
   #learner.display_game()
 

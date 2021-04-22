@@ -50,7 +50,7 @@ class ReinforcementLearner():
     
   def run_episode(self):
     # Reset eligibility
-    self.actor.reset_eligibility() 
+    #self.actor.reset_eligibility()
 
     # SARSA with eligibility traces w/nn functional approximator for Q 
     old_state_actions = self.sim_world_player.get_state()
@@ -80,7 +80,7 @@ class ReinforcementLearner():
     
     plot_name = savepath + "/graph.png"
     plt.savefig(plot_name)
-    plt.show()
+    #plt.show()
 
   def display_game(self):
     self.actor.epsilon = 0

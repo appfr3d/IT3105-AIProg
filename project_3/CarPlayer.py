@@ -2,6 +2,7 @@ from SimWorld import SimWorldPlayer
 from CarWorld import CarWorld
 from SimWorldDisplayer import ImageDisplay
 import numpy as np
+import math
 
 class CarPlayer(SimWorldPlayer):
   def __init__(self, config):
@@ -60,11 +61,14 @@ class CarPlayer(SimWorldPlayer):
     return self.state.get_game_over()
   
   def get_reward(self):
+    def get_y_pos(x_pos):
+      return math.cos(3*(x_pos + math.pi/2))
+
     if self.state.get_win():
       return self.config.win_reward
     
     # If we want to make a heuristic, add it here
-    return self.config.base_reward
+    return self.config.speed * self.state.state['velocity'] + self.config.y * get_y_pos(self.state.state['x-pos'])
 
   def get_log_metric(self):
     return self.state.get_log_metric()

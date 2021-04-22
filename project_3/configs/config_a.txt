@@ -1,6 +1,6 @@
-number_of_episodes : 40
+number_of_episodes : 2
 
-critic_nn_dimentions : 1128, 1
+critic_nn_dimentions : [1128, 1]
 
 critic_learning_rate : 0.0001
 critic_eligibility_decay_rate : 0.85

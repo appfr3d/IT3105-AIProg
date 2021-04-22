@@ -33,6 +33,7 @@ class ConfigReader():
     self.tiles = 5
     self.tiles_per_tile = 5
     self.tiling_offset = 0.1
+    
     self.y = 0.0
     self.speed = 0.0
 
@@ -73,7 +74,8 @@ class ConfigReader():
         self.number_of_episodes = int(val)
 
       elif key == 'critic_nn_dimentions':
-        self.critic_nn_dimentions = [int(d) for d in val.split(',')]
+
+        self.critic_nn_dimentions = [int(d) for d in val[1:-1].split(',')]
             
       elif key == 'critic_learning_rate':
         self.critic_learning_rate = float(val)
@@ -111,13 +113,12 @@ class ConfigReader():
       elif key == 'tiling_offset':
         self.tiling_offset = float(val)
       
-      return file_name
+    return file_name
 
   def copy_config(self, savepath):
-    # Copy config file to new folder
-    with open(os.path.join(CONFIG_DIR, self.file_name)) as old_config:
-      if not os.path.exists(savepath):
-        os.makedirs(savepath)
-      with open(savepath + '/config_used.txt', 'w+') as new_config:
-        for line in old_config:
-          new_config.write(line)
+    # Copy config values to new folder
+    with open(savepath + '/config_used.txt', 'w+') as new_config:
+      # Works for both normal and randomly generated config files
+      for key in self.__dict__.keys():
+        line = key + ' : ' + str(self.__dict__[key]) + '\n'
+        new_config.write(line)

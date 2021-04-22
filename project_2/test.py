@@ -1,6 +1,6 @@
+'''
 import numpy as np
 from tensorflow import keras
-
 def get_model():
     # Create a simple model.
     inputs = keras.Input(shape=(32,))
@@ -31,3 +31,11 @@ np.testing.assert_allclose(
 # The reconstructed model is already compiled and has retained the optimizer
 # state, so training can resume:
 reconstructed_model.fit(test_input, test_target)
+'''
+
+# Test epsilon decay bounds
+e = 0.7
+for i in range(60):
+    e *= 0.8
+
+print(e)

@@ -1,5 +1,6 @@
 from enum import Enum
 import typing
+from IllegalArgumentException import * 
 
 class Piece:
   """
@@ -45,7 +46,19 @@ class Peg(Piece):
     self.state = newState
 
   def player1_place_peg(self):
+    if not self.state == PegState.EMPTY:
+      raise Exception("Illegal Argument")
     self.change_state(PegState.PLAYER1)
 
   def player2_place_peg(self):
+    if not self.state == PegState.EMPTY:
+      raise Exception("Illegal Argument")
     self.change_state(PegState.PLAYER2)
+
+  def __str__(self):
+    if self.state == PegState.PLAYER1:
+      return "PLAYER1"
+    elif self.state == PegState.PLAYER2:
+      return "PLAYER2"
+    else:
+      return "EMPTY"

@@ -5,9 +5,26 @@ from Pieces import PegState
 import numpy as np
 import time
 import random
+import copy
 import os
 
+
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# These are the crossentropy functions that Keith sent on mail.
+# As this is clearly the most reasonable implementation (because it both uses
+# tensorflow functions in computation and because it is "safe" from predictions close to 0)
+# we will just use it too, assume this is fine as it was provided by Keith
+def deepnet_cross_entropy(targets, outs):
+
+  return tf.reduce_mean(tf.reduce_sum(-1 * targets * safelog(outs), axis=[1]))
+
+  # The use of mean here is because I’m sending in minibatches of targets and outputs.
+
+
+def safelog(tensor, base=0.0001):
+  return tf.math.log(tf.math.maximum(tensor, base))
+
 
 class ActorNN:
   def __init__(self, config, game_bridge, model_path=None):
@@ -42,10 +59,20 @@ class ActorNN:
     model.add(keras.Input(shape=input_shape))
 
     # Add fully connected layers to the model
+    # Consider conv2d if regular don't work
+    pre_layers = self.game_bridge.get_pre_layers()
+    for layer in pre_layers:
+      model.add(layer)
     for dim in self.config.neurons_per_layer: 
       model.add(keras.layers.Dense(dim, activation=self.config.activation_func))
+      #model.add(keras.layers.BatchNormalization())
+      # Batch normalization layers makes the output of each neuron more like a normal gaussian.
+      # This often helps w/training time and generalization.
 
-    model.add(self.game_bridge.get_output_layer())
+    # Consider sigmoid here?
+    output_layers = self.game_bridge.get_output_layer()
+    for layer in output_layers:
+      model.add(layer)
 
     model.compile(optimizer=opt(lr=self.config.actor_learning_rate), loss=loss, metrics=[loss])
     model.build(input_shape = self.game_bridge.get_input_shape())
@@ -54,7 +81,6 @@ class ActorNN:
   def eval(self, param_tuple):
     # What is called by monte-carlo tree node
     inputs = self.game_bridge.translate_to_nn_input(param_tuple)
-    
     output = self.model(inputs).numpy()
 
     return self.game_bridge.post_process(output, param_tuple)
@@ -65,15 +91,32 @@ class ActorNN:
     x = training_samples_dict['x']
     y = training_samples_dict['y']
 
-    self.model.fit(x=x, y=y, verbose=0)
+    self.model.fit(x=x, y=y, verbose=0, epochs=self.config.epochs_per_rbuf)
+
+  def fit_no_processing(self, RBUF):
+    x = RBUF['x']
+    y = RBUF['y']
+
+    self.model.fit(x=x, y=y, verbose=0, epochs=self.config.epochs_per_rbuf)
   
-  def save(self, episode):
-    model_path = CURRENT_DIR + '/tournament_models/' + str(self.config.size) + '/model_' + str(episode).zfill(8)
+  def save(self, save_path, episode):
+    if save_path == None:
+      model_path = CURRENT_DIR + '/tournament_models/' + str(self.config.size) + '/model_' + str(episode).zfill(8)
+      self.model.save(model_path)
     # print('\nSaving model to: ' + model_path + '\n')
-    self.model.save(model_path)
+    else:
+      self.model.save(save_path + '/' + str(episode).zfill(8))
  
   def load(self, path):
-    self.model = keras.models.load_model(path)
+    self.model = keras.models.load_model(path, compile=False)
+
+    
+    if self.config.run_type == 'train_again':
+      # Compile and build model for further training.
+      opt = self.config.optimizer
+      loss = self.game_bridge.get_loss_metric()
+      self.model.compile(optimizer=opt(lr=self.config.actor_learning_rate, clipnorm=1.0), loss=loss, metrics=[loss])
+      self.model.build(input_shape = self.game_bridge.get_input_shape())
 
 
 class GameBridge:
@@ -104,11 +147,79 @@ class GameBridge:
     # If necessary you can post-process network output (when predicting, not when training) before it is returned
     pass
 
+  def get_pre_Layers(self):
+    # Get layers which should come directly after input layer, ex. convolutional layers or other layers which are not
+    # simple fully connected layers that can be set in the config file
+    pass
+
+  def get_output_size(self):
+    pass
+
+  def get_input_size(self):
+    pass
 
 class HexBoardNNBridge(GameBridge):
   def __init__(self, config):
     self.config = config
-  
+
+  def get_output_size(self):
+    return self.config.size*self.config.size
+
+  def get_pre_layers(self):
+    pre_layers = []
+    size = self.config.size
+    q = size
+    y = 16
+    if size != 6:
+      new_shape = (size + 1) * (size + 1)
+      # Map input which has data about which player and the board onto a larger list, which can be reshaped into a
+      # board shape for use with conv2d
+      pre_layers.append(keras.layers.Dense(new_shape, activation=self.config.activation_func,
+                                           kernel_regularizer=keras.regularizers.l2(l2=1e-4),
+                                           bias_regularizer=keras.regularizers.l2(1e-4)))
+      # pre_layers.append(keras.layers.BatchNormalization())
+
+      pre_layers.append(keras.layers.Reshape((size + 1, size + 1, 1,)))
+      while q >= 4:
+        pre_layers.append(
+          keras.layers.Conv2D(filters=y, kernel_size=(2, 2), strides=2, activation=self.config.activation_func,
+                              padding='same', kernel_regularizer=keras.regularizers.l2(l2=1e-4),
+                              bias_regularizer=keras.regularizers.l2(1e-4)))
+        # pre_layers.append(keras.layers.BatchNormalization())
+        q = q / 2
+        y *= 2
+      pre_layers.append(keras.layers.Flatten())
+    else:
+      new_shape = (2*size + 1) * (2*size + 1)
+      pre_layers.append(keras.layers.Dense(new_shape, activation=self.config.activation_func))
+      pre_layers.append(keras.layers.Reshape((2*size + 1, 2*size + 1, 1,)))
+      pre_layers.append(
+        keras.layers.Conv2D(32, kernel_size=(5, 5), strides=2, activation=self.config.activation_func, padding='same'))
+      pre_layers.append(
+        keras.layers.Conv2D(32, kernel_size=(5, 5), strides=2, activation=self.config.activation_func, padding='same'))
+      pre_layers.append(
+        keras.layers.Conv2D(32, kernel_size=(5, 5), strides=2, activation=self.config.activation_func, padding='same'))
+      pre_layers.append(
+        keras.layers.Conv2D(32, kernel_size=(5, 5), strides=2, activation=self.config.activation_func,
+                            padding='same', kernel_regularizer=keras.regularizers.l2()))
+      pre_layers.append(
+        keras.layers.Conv2D(32, kernel_size=(5, 5), strides=2, activation=self.config.activation_func,
+                            padding='same', kernel_regularizer=keras.regularizers.l2()))
+      pre_layers.append(
+        keras.layers.Conv2D(32, kernel_size=(5, 5), strides=2, activation=self.config.activation_func, padding='same'))
+      pre_layers.append(keras.layers.Flatten())
+    return pre_layers
+
+  def map_to_sample(self, RBUF_pair):
+    board = RBUF_pair[0][0]
+    moves = board.get_all_moves()
+    player_to_move = RBUF_pair[0][1]
+
+    binary_input = self.translate_to_nn_input((moves, player_to_move, board.board))
+    distribution = RBUF_pair[1]
+
+    return np.append(binary_input, distribution)
+
   def process_training_samples(self, RBUF):
     # Get random minibatch of RBUF
     # RBUF = [((board, player_to_move), distribution)]
@@ -140,12 +251,16 @@ class HexBoardNNBridge(GameBridge):
   
   def get_input_shape(self): 
     return (2 + 2*self.config.size*self.config.size,)
-  
+
+  def get_input_size(self):
+    return 2 + 2*self.config.size*self.config.size
+
   def get_output_layer(self):
-    return keras.layers.Dense(self.config.size*self.config.size, activation=tf.nn.softmax)
+    return [keras.layers.Dense(self.config.size * self.config.size, activation='softmax')]
   
   def get_loss_metric(self):
-    return keras.losses.categorical_crossentropy
+    return lambda target, out: deepnet_cross_entropy(target, out)
+
   
   def translate_to_nn_input(self, params):
     moves = params[0] # hex_board.get_all_moves()
@@ -194,20 +309,47 @@ class HexBoardNNBridge(GameBridge):
     player_to_move = params[1]
     board_representation = params[2]
     move_type = params[3]
-    legal_moves = moves # 2D array with 1 for legal move 0 for not
+    legal_moves = np.asarray(moves).flatten() # 2D array with True for legal move False for not
+    legal_moves[legal_moves == True] = 1
+    legal_moves[legal_moves == False] = 0
 
     # Mask out non-legal moves
     # crucially it just sets invalid 
-    values = self.mask(nn_output, np.asarray(legal_moves).flatten())
+    values = self.mask(nn_output, legal_moves)
 
     
     if move_type == 'greedy':
-      index = list(values).index(max(values))
-    elif move_type == 'stochastic':    
+      while True: # Loop to fix issue with picking illegal moves as best move
+        index = list(values).index(max(values))
+        if legal_moves[index] == 1: # if legal move
+          break
+        else:
+          values[index] = -1
+    elif move_type == 'stochastic' or move_type == 'stochastic_pow':
+
+      if move_type == 'stochastic_pow':
+        # Make every number be 1 + num to avoid nan problems
+        for indx in range(len(values)):
+          values[indx] += 1
+        # Increase probability of higher numbers by raising them to the power of 2
+        for indx in range(len(values)):
+          values[indx] = values[indx]**2
+
       # normalize
       the_sum = np.sum(values)
+
+      if the_sum == 0:  # If the nn predicts very low values for every move that is legal the sum can become 0. If this happens, return the first legal move
+        index = 0
+        moves = np.asarray(legal_moves).flatten()
+        while True:
+          if legal_moves[index] == True or legal_moves[index] == 1:
+            pos = (index // self.config.size, index % self.config.size)
+            return (pos, player_to_move)
+          index += 1
+
       for indx in range(len(values)):
         values[indx] = values[indx]/the_sum
+
 
       values = np.insert(values, 0, [0.0])
 
@@ -220,6 +362,8 @@ class HexBoardNNBridge(GameBridge):
 
       # Choose by finding which interval randval is in, stochastic choice
       while True:
+        if index == 37:
+          print('what')
         if randval >= values[index-1] and randval < values[index] and values[index-1] != values[index]:
           # If it is in interval
           # And the values are not equal <=> it is not one of the invalid moves that were masked out to 0
@@ -227,6 +371,29 @@ class HexBoardNNBridge(GameBridge):
         else:
           index += 1
       index -= 1 # because we added a 0 at start of the values list
+    elif move_type == 'e-greedy':
+      e = self.config.initial_epsilon # FOR NOW assumes constant epsilon
+      randval = random.random()
+      if randval < e:
+        index = random.randint(0, values.shape[0]-1)
+      else:
+        index = list(values).index(max(values))
+    elif move_type == 'first-random-greedy':
+      # If first move in the game, choose randomly
+      # Else, choose greedy
+      num_possible_moves = np.sum(np.asarray(legal_moves, dtype=np.bool))
+      if num_possible_moves == self.config.size**2:
+        index = random.randint(0, values.shape[0]-1)
+      else:
+        if max(values) != 0:
+          index = list(values).index(max(values))
+        else:
+          index = 0
+          while True:
+            if legal_moves[index] == True or legal_moves[index] == 1:
+              break
+            index += 1
+
     pos = (index // self.config.size, index % self.config.size)
 
     return (pos, player_to_move) # ((x, y), player_to_move)
@@ -237,5 +404,187 @@ class HexBoardNNBridge(GameBridge):
     """
     return np.multiply(values, mask_values)
 
+class HexBoardNNBridgeOnlineTournament(GameBridge):
+  def __init__(self, config):
+    self.config = config
+    self.should_play_first_move_random = False
+    self.series_id = 0
+    self.loosing_states = []
+    self.current_states = []
+
+  def get_pre_layers(self):
+    pre_layers = []
+    size = self.config.size
+    q = size
+    y = 16
+    if size != 6:
+      new_shape = (size+1)*(size+1)
+      # Map input which has data about which player and the board onto a larger list, which can be reshaped into a
+      # board shape for use with conv2d
+      pre_layers.append(keras.layers.Dense(new_shape, activation=self.config.activation_func, kernel_regularizer = keras.regularizers.l2(l2=1e-4),
+          bias_regularizer = keras.regularizers.l2(1e-4)))
+      #pre_layers.append(keras.layers.BatchNormalization())
+
+      pre_layers.append(keras.layers.Reshape((size+1, size+1, 1,)))
+      while q >= 4:
+        pre_layers.append(keras.layers.Conv2D(filters=y, kernel_size=(2, 2), strides=2, activation=self.config.activation_func, padding='same', kernel_regularizer = keras.regularizers.l2(l2=1e-4),
+              bias_regularizer = keras.regularizers.l2(1e-4)))
+        #pre_layers.append(keras.layers.BatchNormalization())
+        q = q / 2
+        y *= 2
+      pre_layers.append(keras.layers.Flatten())
+    else:
+      new_shape = (size + 1) * (size + 1)
+      pre_layers.append(keras.layers.Dense(new_shape, activation=self.config.activation_func))
+      pre_layers.append(keras.layers.Reshape((size + 1, size + 1, 1,)))
+      pre_layers.append(keras.layers.Conv2D(32, kernel_size=(5, 5), strides=1, activation=self.config.activation_func, padding='same'))
+      pre_layers.append(keras.layers.Conv2D(16, kernel_size=(5, 5), strides=2, activation=self.config.activation_func, padding='same'))
+      pre_layers.append(
+        keras.layers.Conv2D(8, kernel_size=(2, 2), strides=1, activation=self.config.activation_func, padding='same'))
+      pre_layers.append(
+        keras.layers.Conv2D(8, kernel_size=(2, 2), strides=2, activation=self.config.activation_func, padding='same'))
+      pre_layers.append(keras.layers.Flatten())
+    return pre_layers
+
+  def process_training_samples(self, RBUF):
+    # Get random minibatch of RBUF
+    # RBUF = [((board, player_to_move), distribution)]
+    # training_samples = [(input, target)]
+    # input = [0, 1, 0 , 0, ... ] binary version of board state
+    # target is just distribution
+    
+    
+    def map_to_sample(RBUF_pair):
+      board = RBUF_pair[0][0]
+      moves = board.get_all_moves()
+      player_to_move = RBUF_pair[0][1]
+
+      binary_input = self.translate_to_nn_input((moves, player_to_move, board.board))
+      distribution = RBUF_pair[1]
+
+      return (binary_input, distribution)
+    
+    # For now, just return every case
+    training_samples = [map_to_sample(RBUF_pair) for RBUF_pair in RBUF]
+    x = np.zeros((len(training_samples), len(training_samples[0][0][0])))
+    y = np.zeros((len(training_samples), len(training_samples[0][1])))
+
+    for num in range(len(training_samples)):
+      x[num] = training_samples[num][0][0]
+      y[num] = training_samples[num][1]
+    
+    return {'x':x, 'y':y}
   
+  def get_input_shape(self): 
+    return (2 + 2*self.config.size*self.config.size,)
+  
+  def get_output_layer(self):
+    return [keras.layers.Dense(self.config.size*self.config.size, activation='softmax')]
+  
+  def get_loss_metric(self):
+    return keras.losses.KLD
+
+  def translate_to_nn_input(self, params):
+    moves = params
+    rep = []
+
+    for datapoint in moves:
+      if datapoint == 0:
+        rep.append(0)
+        rep.append(0)
+      elif datapoint == 1:
+        rep.append(0)
+        rep.append(1)
+      elif datapoint == 2:
+        rep.append(1)
+        rep.append(0)
+    
+    return np.asarray(rep).reshape(1, len(rep))
+  
+  def handle_series_start(self, series_id, player_map):
+    # player_map [(6371936, 1), (999, 2)]
+    # best_model_id = 2020
+    self.series_id = series_id
+    self.loosing_states = []
+    self.current_states = []
+
+    hard_model_id = -1 # 2020 # did not work at all...
+    if player_map[0][0] == hard_model_id or player_map[1][0] == hard_model_id:
+      self.should_play_first_move_random = True
+    else:
+      self.should_play_first_move_random = False
+    
+    print('should_play_first_move_random:', self.should_play_first_move_random)
+
+  def handle_game_over(self, winner):
+    # if loose, extend loosing statews 
+    if not winner == self.series_id:
+      new_states = []
+      for state in self.current_states:
+        if not state in self.loosing_states:
+          new_states.append(state)
+      if len(new_states) > 0:
+        self.loosing_states.extend(copy.deepcopy(new_states))
+      
+    self.current_states = []
+
+    if not winner == self.series_id:
+      print('Extending loosing_states. Now containing ' + str(len(self.loosing_states)) + ' states.')
+
+  def post_process(self, nn_output, params): 
+    nn_output = nn_output.reshape((self.config.size*self.config.size,))
+    moves = np.asarray(params[1:])  # First one is who gets to move
+
+    is_first_move = params[1:].count(self.series_id) == 0
+
+    # flip moves s.t. 1 indicates empty, 0 indicates not empty
+    moves[moves == 0] = 10
+    moves[moves == 1] = 0
+    moves[moves == 2] = 0
+    moves[moves == 10] = 1
+
+    # Mask out non-legal moves
+    # crucially it just sets invalid 
+    values = self.mask(nn_output, np.asarray(moves).flatten())
+
+    # Use first-random-greedy if playing against the hardest model.
+    if self.should_play_first_move_random and is_first_move:
+      index = random.randint(0, values.shape[0]-1)
+    else:
+      # Else only choose greedy
+      # TODO: Test dette!!!
+      indecies = []
+      for _ in range(2):
+        i = list(values).index(max(values))
+        indecies.append(i)
+        value_list = list(values)
+        value_list[i] = 0 # set to a bad value to not be choosen again by max
+        values = tuple(value_list)
+      
+      found_new_state = False
+      for i in indecies:
+        new_state = list(params[1:])
+        new_state[i] = self.series_id
+        new_state = tuple(new_state)
+        if not new_state in self.loosing_states:
+          index = i
+          self.current_states.append(new_state)
+          found_new_state = True
+          break
+
+      if not found_new_state:
+        index = indecies[0] # Default to the best posble state from the network
+
+    pos = (index // self.config.size, index % self.config.size)
+
+    return pos # ((x, y), player_to_move)
+
+  def mask(self, values, mask_values):
+    """
+    Map values to 0 if mask_values at elementwise same position is 0, or to original value of mask_values is 1
+    """
+    return np.multiply(values, mask_values)
+
+
+
     

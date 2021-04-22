@@ -1,21 +1,21 @@
+import time
+
 from Pieces import PegState
 from HexGameBoard import HexGameBoard
 from PlayerEnum import Player
-import copy
 import math
 import numpy as np
 import random
-
-
+from Pieces import Peg
 
 class TreeState:
   def __init__(self, game_bridge):
     self.tree_states = {}
     self.hasher = game_bridge
-    
+
   def exists(self, state):
     return self.state_hash(state) in self.tree_states
-  
+
   def get_existing_parents(self, state):
     hashed_state = self.state_hash(state)
     if self.state_hash(state) in self.tree_states:
@@ -25,11 +25,11 @@ class TreeState:
 
   def state_hash(self, state):
     return self.hasher.hash(state)
-  
+
   def add_node(self, node):
     # Assume node is a monte carlo tree node 
     self.tree_states[self.state_hash(node.state)] = node
-  
+
   def get_node(self, state):
     return self.tree_states[self.state_hash(state)]
 
@@ -85,7 +85,7 @@ class HexGameBridge(GameBridge):
     return HexGameBoard(self.config.board_type, self.config.size)
   
   def get_state(self, state):
-    return state.get_state()
+    return state.board
 
   def get_max_possible_actions(self):
     return self.config.size * self.config.size
@@ -95,7 +95,7 @@ class HexGameBridge(GameBridge):
     if winner == Player.PLAYER1:
       to_return = 1
     elif winner == Player.PLAYER2:
-      to_return = 0
+      to_return = -1
     else:
       # should not happen but for debugging
       raise Exception("No more moves but no winner yet, critical game logic failure") 
@@ -106,10 +106,24 @@ class HexGameBridge(GameBridge):
   
   def get_all_tree_moves(self, state):
     return state.get_all_moves()[1]
+
+  def get_dist_index(self, move):
+    return move[0][0] * self.config.size + move[0][1]
   
   def execute_move(self, state, move):
     new_state = self.initialize_new_state()
-    new_state.set_board(copy.deepcopy(state.board))
+    board = state.board
+    new_board = [[None for y in range(self.config.size)] for x in range(self.config.size)]
+    for row in range(self.config.size):
+      for col in range(self.config.size):
+        board_element = board[row][col]
+        if board_element.state == PegState.PLAYER1:
+          new_board[row][col] = Peg((row, col), PegState.PLAYER1)
+        elif board_element.state == PegState.PLAYER2:
+          new_board[row][col] = Peg((row, col), PegState.PLAYER2)
+        else:
+          new_board[row][col] = Peg((row, col), PegState.EMPTY)
+    new_state.set_board(new_board)
     new_state.do_action(move)
     return new_state
 
@@ -134,11 +148,12 @@ class HexGameBridge(GameBridge):
     hash_elements = []
     for row in board:
       for col in row:
-        hash_elements.append(str(col.state))
+        hash_elements.append(str(col.state.value))
     hash_val = hash_val.join(hash_elements)
     return hash_val
 
   def get_all_nn_moves(self, state):
+
     return state.get_all_moves()[0]
 
 class TreeNode:
@@ -157,12 +172,17 @@ class TreeNode:
     self.move_to_child = {}
     self.game_bridge = game_bridge
     self.hash = self.game_bridge.hash(self.state)
-    # Function that adds a (root, D) pair to RBUF
+    # we can just store which action the NN has taken previously to save computation time
 
   def monte_carlo_action(self):
+    time_start = time.time()
+    while time.time() - time_start < self.config.timeout:
+      self.rollout()
+    """
+
     for num in range(self.config.rollouts_per_move):
       self.rollout()
-    
+    """    
     distribution = [0 for x in range(self.game_bridge.get_max_possible_actions())]
     child_dist_map = [None for x in range(self.game_bridge.get_max_possible_actions())]
 
@@ -170,14 +190,21 @@ class TreeNode:
       child = self.children[child_str]
       move = self.move_to_child[child.hash]
       edge_visit_count = child.edge_visit_counts[self.hash]
-      distribution[move[0][0] * self.config.size + move[0][1]] += edge_visit_count
-      child_dist_map[move[0][0] * self.config.size + move[0][1]] = child
-    
-    norm = np.linalg.norm(distribution)
-    distribution = np.asarray(distribution)/norm
+      distribution[self.game_bridge.get_dist_index(move)] += edge_visit_count
+      child_dist_map[self.game_bridge.get_dist_index(move)] = child
+
+    whole_sum = sum(distribution)
+    distribution = np.asarray(distribution)/whole_sum
     RBUF_pair = ((self.state, self.player_to_move), distribution)
-    
-    best_move = list(distribution).index(max(distribution))
+
+    if random.random() >= self.epsilon:
+      while True:
+        best_move = random.randint(0, len(distribution)-1)
+        # If the move is not illegal (i.e. for sufficient amount of rollouts only illegal moves will be unexplored)
+        if not distribution[best_move] == 0:
+          break
+    else:
+      best_move = list(distribution).index(max(distribution))
     next_root = child_dist_map[best_move]
 
     return RBUF_pair, next_root
@@ -195,21 +222,24 @@ class TreeNode:
   def increment_edge_visit_count(self, parent):
     self.edge_visit_counts[parent.hash] += 1
 
-  def rollout(self, force_rollout = False):
+  def rollout(self, force_rollout=False, depth=0):
+    if depth > self.config.size*self.config.size:
+      print(depth)
     # If there are no more possible children/ungenerated children
-    if self.game_bridge.get_move_count(self.state) == 0:
+    if self.game_bridge.get_win(self.state):
       # IF there are no more moves there exists a winner
       return self.game_bridge.get_winner_data(self.state)
-      
+
     # If we've started rolling out, continue rolling out
-    # If you are the root note, but do not have any children, then expand and generate 
+    # If you are the root note, but do not have any children, then expand and generate
     # your children (i.e. no parents, no children)
     # But if you are not a root node ( you have a parent) and do not have children then you should go over to Rollout
-    if (len(self.children) != 0 or len(self.parents) == 0) and not force_rollout:
+    if not force_rollout:
+      leaf_node = len(self.children) == 0
       if len(self.children) != self.game_bridge.get_move_count(self.state):
         # Generate nodes
-        moves = self.game_bridge.get_all_tree_moves (self.state)
-        for move in moves: 
+        moves = self.game_bridge.get_all_tree_moves(self.state)
+        for move in moves:
           new_state = self.game_bridge.execute_move(self.state, (move, self.player_to_move))
           # If new child node does not exist in tree
           if not self.tree_state.exists(new_state):
@@ -217,7 +247,8 @@ class TreeNode:
             player_to_move = Player.PLAYER1
             if self.player_to_move == Player.PLAYER1:
               player_to_move = Player.PLAYER2
-            new_monte_carlo_node = TreeNode(self.config, new_state, player_to_move, self.tree_state, self.default_policy, self.epsilon, self.game_bridge)
+            new_monte_carlo_node = TreeNode(self.config, new_state, player_to_move, self.tree_state,
+                                            self.default_policy, self.epsilon, self.game_bridge)
             new_monte_carlo_node.add_parent(self)
             self.add_child(new_monte_carlo_node, (move, self.player_to_move))
             self.tree_state.add_node(new_monte_carlo_node)
@@ -225,90 +256,81 @@ class TreeNode:
           elif self.state_hash(new_state) not in self.children.keys():
             self.add_child(self.tree_state.get_node(new_state), (move, self.player_to_move))
             self.children[self.state_hash(new_state)].add_parent(self)
-      
+
       # Select next node using tree policy
-      best_child = None
-      best_tree_policy_value = 0
-      for child_hash in self.children:
-        child = self.children[child_hash]
-        if best_child == None:
-          best_child = child
-          
-          # From slides
-          if child.player_to_move == Player.PLAYER1:
-            best_tree_policy_value = child.get_q_value(self) + child.get_u_value(self)
-          else:
-            best_tree_policy_value = child.get_q_value(self) - child.get_u_value(self)
-        else:
-          # From slides
-          if child.player_to_move == Player.PLAYER1:
-            tree_policy_value = child.get_q_value(self) + child.get_u_value(self)
-          else:
-            tree_policy_value = child.get_q_value(self) - child.get_u_value(self) 
-            
-            
-          if tree_policy_value > best_tree_policy_value:
-            best_tree_policy_value = tree_policy_value
-            best_child = child
-      
+      tree_policy_values = []
+      children = []
+      if self.player_to_move == Player.PLAYER1:
+        for child_hash in self.children:
+          child = self.children[child_hash]
+          children.append(child)
+          tree_policy_values.append(child.get_q_value(self) + child.get_u_value(self))
+        child_index = tree_policy_values.index(max(tree_policy_values))
+      else:
+        for child_hash in self.children:
+          child = self.children[child_hash]
+          children.append(child)
+          tree_policy_values.append(child.get_q_value(self) - child.get_u_value(self))
+        child_index = tree_policy_values.index(min(tree_policy_values))
+
+      best_child = children[child_index]
       # Move to next child
-      best_child.increment_edge_visit_count(self)
-      evaluation = best_child.rollout()
+      if leaf_node:
+        evaluation = best_child.rollout(force_rollout=True, depth=depth+1)
+      else:
+        evaluation = best_child.rollout(depth=depth+1)
       self.evaluation_value += evaluation
       self.visit_count += 1
+      best_child.increment_edge_visit_count(self)
       return evaluation
 
-    else: 
+    else:
       # rollout policy
-      
+
       # e-greedy
       if random.random() >= self.epsilon:
         # policy
         moves = self.game_bridge.get_all_nn_moves(self.state)
-        action = self.default_policy.eval((moves, self.player_to_move, self.game_bridge.get_state(self.state), "greedy"))
+        action = self.default_policy.eval(
+          (moves, self.player_to_move, self.game_bridge.get_state(self.state), "greedy"))
+        self.action = action
       else:
         # random
         moves = self.game_bridge.get_all_tree_moves(self.state)
         action = random.choice(moves)
         action = (action, self.player_to_move)
 
-      new_state = self.game_bridge.execute_move(self.state, action)
-      
-      # If new child node does not exist in tree
-      if not self.tree_state.exists(new_state):
-        player_to_move = Player.PLAYER1
-        if self.player_to_move == Player.PLAYER1:
-          player_to_move = Player.PLAYER2
-        new_monte_carlo_node = TreeNode(self.config, new_state, player_to_move, self.tree_state, self.default_policy, self.epsilon, self.game_bridge)
-        new_monte_carlo_node.add_parent(self)
-        self.add_child(new_monte_carlo_node, action)
-        self.tree_state.add_node(new_monte_carlo_node)
-      # If new child node exists in tree but is not added as a child of this node
-      elif self.state_hash(new_state) not in self.children.keys():
-        self.add_child(self.tree_state.get_node(new_state), action)
-        self.children[self.state_hash(new_state)].add_parent(self)
 
-      child = self.children[self.state_hash(new_state)]
-      child.increment_edge_visit_count(self)
-      evaluation = child.rollout(force_rollout = True)
+      new_state = self.game_bridge.execute_move(self.state, action)
+
+      player_to_move = Player.PLAYER1
+      if self.player_to_move == Player.PLAYER1:
+        player_to_move = Player.PLAYER2
+      child = TreeNode(self.config, new_state, player_to_move, self.tree_state, self.default_policy, self.epsilon,
+                       self.game_bridge)
+
+      evaluation = child.rollout(force_rollout=True, depth=depth+1)
       self.evaluation_value += evaluation
       self.visit_count += 1
       return evaluation
   
   def get_q_value(self, parent):
     if self.edge_visit_counts[parent.hash] == 0:
-      return 0
+      return 0.0 # We assume that if a move has never been encountered, it will on average lead to 50% wins, and 50% losses.
     return self.evaluation_value/self.edge_visit_counts[parent.hash]
   
   def get_u_value(self, parent):
     parent_hash = parent.hash
     # self.visit_count must be > 0
     if self.visit_count == 0:
-      return 0
+      # Always visit unexplored nodes. Priors favoring exploration often lead to better results.
+      return 100000
+    elif parent.visit_count == 0:
+      return self.config.exploration_constant
     elif self.edge_visit_counts[parent_hash] == 0:
-      return self.config.exploration_constant * math.sqrt(math.log(self.visit_count))
+      return self.config.exploration_constant * math.sqrt(math.log(parent.visit_count))
     else:
-      return self.config.exploration_constant * math.sqrt(math.log(self.visit_count) / (1 + self.edge_visit_counts[parent_hash]))
+      return self.config.exploration_constant * math.sqrt(math.log(parent.visit_count) / (1 + self.edge_visit_counts[parent_hash]))
 
   def state_hash(self, state):
     return self.game_bridge.hash(state)

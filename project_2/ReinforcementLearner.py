@@ -14,9 +14,35 @@ from PlayerEnum import Player
 from MonteCarloTreeNodes import TreeNode, TreeState, HexGameBridge
 
 from tensorflow.keras.callbacks import TensorBoard
+import cProfile
+import os
+import random
+
+class RBUF_OBJECT():
+  def __init__(self, max_index):
+    self.list = []
+    self.index = 0
+    self.max_index = max_index
+
+  def append(self, list_object):
+    if len(self.list) == self.max_index+1:
+      self.list[self.index] = list_object
+      self.index = (self.index + 1) % self.max_index
+    else:
+      self.list.append(list_object)
+
+  def get_minibatch(self, minibatch_size=32):
+    if len(self.list) < minibatch_size:
+      return self.list
+    else:
+      return random.choices(population=self.list, k=32)
+
+  def clear(self):
+    self.list = []
+    self.index = 0
 
 class ReinforcementLearner():
-  def __init__(self, config: ConfigReader, nn_bridge, game_bridge, model_path=None):
+  def __init__(self, config: ConfigReader, nn_bridge, game_bridge, save_path=None, model_path=None):
     """
     :param config: A config object containing configuration information.
     :param nn_bridge: game specific nn bridge
@@ -26,22 +52,44 @@ class ReinforcementLearner():
     self.actor = ActorNN(config, nn_bridge, model_path)
     self.config = config
     self.game_bridge = game_bridge
+    self.save_path = save_path
+    self.model_path = model_path
 
     
   def fit(self):
     # Run all episodes
-    for episode in tqdm(range(self.config.number_of_episodes), desc="Episode"):
-      self.run_episode(display=False)
+    RBUF = RBUF_OBJECT(self.config.rbuf_size)
+
+    # if there are some directories in self.save_path
+    # start from the highest number
+    if not self.model_path == None:
+      # find the episode number from the model_path
+      _, tail = os.path.split(self.model_path)
+      start_episode = int(tail)
+
+      # Calculate the last epsilon value and set initial epsilon to that value
+      e = self.config.initial_epsilon
+      for _ in range(start_episode):
+        e *= self.config.epsilon_decay_rate
+      self.actor.epsilon = max(e, self.config.epsilon_lower_bound)
+
+      print('Starting training on episode ' + str(start_episode))
+
+    else:
+      start_episode = 0
+
+    for episode in tqdm(range(start_episode, start_episode + self.config.number_of_episodes), desc="Episode"):
+      RBUF = self.run_episode(RBUF, display=False)
       #if self.sim_world_player.get_reward() == 1.0:
       #  self.actor.epsilon_decay()
 
       # Multiplicative
-      self.actor.epsilon *= self.config.epsilon_decay_rate
-      #   self.actor.epsilon_decay()
+      self.actor.epsilon = max(self.actor.epsilon*self.config.epsilon_decay_rate, self.config.epsilon_lower_bound) 
+      # self.actor.epsilon_decay()
 
       # If we are on save interval
       if (episode + 1) % int(math.floor(self.config.number_of_episodes / self.config.model_count)) == 0:
-        self.actor.save(episode)
+        self.actor.save(self.save_path, (episode + 1))
 
       # Logaritmic
       # if self.peg_log[-1] == 1:
@@ -49,10 +97,11 @@ class ReinforcementLearner():
 
       # Linear
       # self.actor.epsilon = self.config.initial_epsilon * (1 - (episode/self.config.number_of_episodes))
-      
+    # TODO: If last episode is not saved, save it here...
+    # Read the directories from self.save_path if it is not None and check if the last episode is in it.
     
     
-  def run_episode(self, display=False):
+  def run_episode(self, RBUF, display=False):
     # 1: Make monte carlo tree
     # Get training samples
     # Do action 
@@ -63,9 +112,11 @@ class ReinforcementLearner():
     if display:
       sim_world_displayer = ImageDisplay(game_state)
     tree_state = TreeState(self.game_bridge)
-    root_node = TreeNode(self.config, game_state, Player.PLAYER1, tree_state, self.actor, self.actor.epsilon, self.game_bridge)
-    RBUF = []
-
+    if random.random() > 0.5:
+      root_node = TreeNode(self.config, game_state, Player.PLAYER1, tree_state, self.actor, self.actor.epsilon, self.game_bridge)
+    else:
+      root_node = TreeNode(self.config, game_state, Player.PLAYER2, tree_state, self.actor, self.actor.epsilon,
+                           self.game_bridge)
     while not self.game_bridge.get_win(root_node.state):
       RBUF_pair, next_root = root_node.monte_carlo_action()
       RBUF.append(RBUF_pair)
@@ -77,14 +128,17 @@ class ReinforcementLearner():
         sim_world_displayer.display(self.config.frame_delay)
 
     # Train ANET on a random minibatch of cases from RBUF:
-    self.actor.fit(RBUF)
+    minibatch = RBUF.get_minibatch(32)
+    RBUF.clear()
+    self.actor.fit(minibatch)
+    return RBUF
 
   def display_game(self):
     self.actor.epsilon = 0
     # self.sim_world_player.display = True
     # self.sim_world_player.force_display_frame()
-
-    self.run_episode(display=True)
+    RBUF = RBUF_OBJECT(200)
+    self.run_episode(RBUF, display=True)
   
   def load(self, path):
     self.actor.load(path)

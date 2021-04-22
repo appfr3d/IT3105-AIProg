@@ -1,16 +1,16 @@
-number_of_episodes : 40
+number_of_episodes : 50
 
-critic_nn_dimentions : 1253, 1
+critic_nn_dimentions : 493, 1
 
-critic_learning_rate : 0.1
-critic_eligibility_decay_rate : 0.9
-critic_discount_factor : 0.9
-initial_epsilon : 1.0
+critic_learning_rate : 0.01
+critic_eligibility_decay_rate : 0.65
+critic_discount_factor : 0.65
+initial_epsilon : 0.0
 epsilon_decay_rate : 1.0
 frame_delay : 10
 image_size : 1000
-base_reward : -0.0
-win_reward : 100
-tiles : 50
-tiles_per_tile : 5
+base_reward : -0.0001
+win_reward : 1
+tiles : 10
+tiles_per_tile : 7
 tiling_offset : 0.0001

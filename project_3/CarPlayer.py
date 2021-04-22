@@ -21,17 +21,17 @@ class CarPlayer(SimWorldPlayer):
     velocity = self.state.state['velocity']
 
     tiles_per_tile = self.tiles[0].get_tile_count()
-    nn_input = np.zeros((tiles_per_tile * len(self.tiles)))
+    nn_input = np.zeros((len(self.tiles), tiles_per_tile))
     for num in range(len(self.tiles)):
       x, y = self.tiles[num].get_tile(x_pos, velocity)
-      indx = tiles_per_tile*num + y + x*self.tiles[num].y_tiles
+      indx = y*self.tiles[num].y_tiles + x
       # print(tiles_per_tile*num)
       # print(x)
       # print(x*self.tiles[num].y_tiles)
       # print(y)
-      nn_input[indx] = 1
+      nn_input[num, indx] = 1
 
-    nn_input = np.asarray(nn_input)
+    nn_input = nn_input.flatten()
     nn1 = np.zeros(tiles_per_tile*len(self.tiles)+3)
     nn2 = np.zeros(tiles_per_tile*len(self.tiles)+3)
     nn3 = np.zeros(tiles_per_tile*len(self.tiles)+3)
@@ -52,7 +52,7 @@ class CarPlayer(SimWorldPlayer):
     # map from nn output to force
     action = float(action)-1
     # then do action
-    self.state.make_move({ 'force': action })
+    self.state.make_move({'force': action})
     if self.display:
       self.sim_world_displayer.display(self.config.frame_delay)
 
@@ -60,7 +60,7 @@ class CarPlayer(SimWorldPlayer):
     return self.state.get_game_over()
   
   def get_reward(self):
-    if self.state.get_game_over() and self.state.get_win():
+    if self.state.get_win():
       return self.config.win_reward
     
     # If we want to make a heuristic, add it here

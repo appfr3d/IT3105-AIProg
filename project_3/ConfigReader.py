@@ -102,7 +102,7 @@ class ConfigReader():
         self.tiles = int(val)
       
       elif key == 'tiles_per_tile':
-        self.tiles = int(val)
+        self.tiles_per_tile = int(val)
       
       elif key == 'tiling_offset':
         self.tiling_offset = float(val)

@@ -1,4 +1,4 @@
-number_of_episodes : 100
+number_of_episodes : 2
 
 critic_nn_dimentions : 128, 1
 

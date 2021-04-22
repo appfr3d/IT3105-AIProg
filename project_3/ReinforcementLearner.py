@@ -47,6 +47,7 @@ class ReinforcementLearner():
     savepath = 'models/' + str(time.time())
     self.actor.model.save(savepath)
     self.display_log(savepath)
+    self.config.copy_config(savepath)
     
   def run_episode(self):
     # Reset eligibility

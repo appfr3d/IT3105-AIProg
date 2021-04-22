@@ -34,7 +34,7 @@ class ConfigReader():
     self.tiles_per_tile = 5
     self.tiling_offset = 0.1
 
-    self.read_config()
+    self.file_name = self.read_config()
       
 
   def read_config(self):
@@ -107,3 +107,13 @@ class ConfigReader():
       elif key == 'tiling_offset':
         self.tiling_offset = float(val)
       
+      return file_name
+
+  def copy_config(self, savepath):
+    # Copy config file to new folder
+    with open(os.path.join(CONFIG_DIR, self.file_name)) as old_config:
+      if not os.path.exists(savepath):
+        os.makedirs(savepath)
+      with open(savepath + '/config_used.txt', 'w+') as new_config:
+        for line in old_config:
+          new_config.write(line)

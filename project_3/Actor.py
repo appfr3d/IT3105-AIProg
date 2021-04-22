@@ -4,6 +4,8 @@ import tensorflow as tf
 import random
 import ConfigReader
 import SplitGD
+import numpy as np
+
 
 class Actor():
   """
@@ -74,7 +76,7 @@ class NNActor(Actor):
   def select_action(self, nn_input):
     vals = []
     for action in nn_input:
-      vals.append(list(self.model(action))[0])
+      vals.append(np.array(self.model(action))[0, 0])
     if random.random() <= self.epsilon:
       r_indx = vals.index(random.choice(vals))
     else:

@@ -16,15 +16,15 @@ class BasicClientActor(BasicClientActorAbs):
 
         config = ConfigReader()
         config.read_config('oht_config.txt')
-        nn_bridge = HexBoardNNBridgeOnlineTournament(config)
+        self.nn_bridge = HexBoardNNBridgeOnlineTournament(config)
         
         # Find the last model made
-        oht_model_dir = os.path.join(CURRENT_DIR, 'tournament_models', 'oht_model')
+        oht_model_dir = os.path.join(CURRENT_DIR, 'tournament_models', 'oht_test')
         model_dirs = [d for d in os.listdir(oht_model_dir) if os.path.isdir(os.path.join(oht_model_dir, d))]
-        model_path = os.path.join(oht_model_dir, model_dirs[-1])
+        model_path = os.path.join(oht_model_dir, model_dirs[-2])
         print(model_path)
 
-        self.actor = ActorNN(config, nn_bridge, model_path)
+        self.actor = ActorNN(config, self.nn_bridge, model_path)
 
     def handle_get_action(self, state):
         """
@@ -49,8 +49,14 @@ class BasicClientActor(BasicClientActorAbs):
         :param num_games - number of games to be played in the series
         :param game_params - important game parameters.  For Hex = list with one item = board size (e.g. 5)
         :return
-
         """
+        print('unique_id', unique_id)
+        print('series_id', series_id)
+        print('player_map', player_map)
+        print('num_games', num_games)
+        print('game_params', game_params)
+
+        self.nn_bridge.handle_series_start(series_id, player_map)
         self.series_id = series_id
 
     def handle_game_start(self, start_player):
@@ -59,7 +65,7 @@ class BasicClientActor(BasicClientActorAbs):
         :return
         """
         self.starting_player = start_player
-        print(start_player)
+        print('start_player', start_player)
 
     def handle_game_over(self, winner, end_state):
         """
@@ -72,6 +78,7 @@ class BasicClientActor(BasicClientActorAbs):
         print("Game over, these are the stats:")
         print('Winner: ' + str(winner))
         print('End state: ' + str(end_state))
+        self.nn_bridge.handle_game_over(winner)
 
     def handle_series_over(self, stats):
         """
@@ -104,5 +111,54 @@ class BasicClientActor(BasicClientActorAbs):
 
 
 if __name__ == '__main__':
-    bsa = BasicClientActor(verbose=True)
+    bsa = BasicClientActor(verbose=False)
     bsa.connect_to_server()
+
+# hard model before first-random-greedy
+'''
+Game start
+2
+(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 2, 0, 1, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 2, 2, 0, 0, 0, 2, 0, 1, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 0, 0, 0, 2, 2, 1, 0, 0, 2, 0, 1, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+Game end
+Game over, these are the stats:
+Winner: 2
+End state: (1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2, 0, 0, 2, 2, 1, 0, 0, 2, 0, 1, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+Game start
+1
+(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 1, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2, 1, 0, 0, 2, 2, 1, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+(1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 0, 0, 0, 2, 1, 0, 0, 2, 2, 1, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+Game end
+Game over, these are the stats:
+Winner: 2
+End state: (1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2, 0, 0, 1, 2, 1, 0, 0, 2, 2, 1, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+Series end
+Series ended, these are the stats:
+[(6371936, 1, 0, 50), (2020, 2, 50, 0)]
+Tournament end
+Tournament over. Your score was: 67.0
+'''
+
+'''
+Winner: 2
+(1, 0, 0, 2, 2, 2, 2, 0, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 2, 2, 1, 2, 1, 2, 0, 0, 0, 2, 0, 2, 0)
+(1, 0, 2, 1, 2, 2, 1, 2, 2, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 1, 1, 1, 0, 2, 1, 2, 2, 1, 2, 2, 2, 2, 2, 2, 0)
+(1, 0, 2, 2, 0, 1, 1, 2, 2, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 0, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 0, 2)
+(1, 0, 2, 2, 2, 2, 1, 1, 2, 1, 1, 2, 1, 2, 1, 1, 1, 2, 1, 1, 1, 2, 1, 2, 2, 1, 1, 2, 1, 2, 0, 1, 1, 2, 2, 2, 2)
+(1, 0, 2, 2, 2, 2, 1, 2, 2, 1, 1, 1, 1, 0, 1, 2, 1, 1, 1, 0, 1, 2, 1, 1, 2, 1, 1, 1, 1, 2, 0, 2, 2, 2, 2, 2, 2)
+(1, 0, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 0, 2, 1, 1, 1, 2, 0, 2, 2, 1, 2, 2, 2)
+
+(1, 2, 0, 1, 2, 2, 1, 2, 2, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 2, 1, 1, 1, 2, 0, 2, 2, 2, 2, 2, 2, 1, 2, 2, 1, 0, 2)
+(1, 2, 0, 2, 0, 1, 1, 2, 0, 1, 1, 1, 2, 0, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 0, 0, 1, 1, 2, 0, 0, 2, 2, 2, 2, 2, 2)
+(1, 2, 0, 2, 2, 0, 1, 2, 0, 1, 1, 2, 2, 0, 2, 1, 1, 1, 1, 0, 2, 1, 1, 1, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 0, 0)
+(1, 2, 0, 2, 2, 2, 1, 2, 2, 1, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 2, 2, 2, 0, 1, 2, 1, 0, 2, 2)
+(1, 2, 2, 1, 2, 2, 1, 0, 2, 1, 1, 1, 2, 0, 1, 2, 1, 1, 1, 0, 2, 1, 1, 1, 2, 0, 1, 1, 2, 2, 0, 2, 2, 2, 0, 0, 0)
+(1, 2, 2, 1, 2, 2, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 2, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2)
+'''

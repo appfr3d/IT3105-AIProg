@@ -5,6 +5,7 @@ from Pieces import PegState
 import numpy as np
 import time
 import random
+import copy
 import os
 
 
@@ -406,6 +407,10 @@ class HexBoardNNBridge(GameBridge):
 class HexBoardNNBridgeOnlineTournament(GameBridge):
   def __init__(self, config):
     self.config = config
+    self.should_play_first_move_random = False
+    self.series_id = 0
+    self.loosing_states = []
+    self.current_states = []
 
   def get_pre_layers(self):
     pre_layers = []
@@ -479,7 +484,6 @@ class HexBoardNNBridgeOnlineTournament(GameBridge):
   def get_loss_metric(self):
     return keras.losses.KLD
 
-  
   def translate_to_nn_input(self, params):
     moves = params
     rep = []
@@ -497,9 +501,42 @@ class HexBoardNNBridgeOnlineTournament(GameBridge):
     
     return np.asarray(rep).reshape(1, len(rep))
   
+  def handle_series_start(self, series_id, player_map):
+    # player_map [(6371936, 1), (999, 2)]
+    # best_model_id = 2020
+    self.series_id = series_id
+    self.loosing_states = []
+    self.current_states = []
+
+    hard_model_id = -1 # 2020 # did not work at all...
+    if player_map[0][0] == hard_model_id or player_map[1][0] == hard_model_id:
+      self.should_play_first_move_random = True
+    else:
+      self.should_play_first_move_random = False
+    
+    print('should_play_first_move_random:', self.should_play_first_move_random)
+
+  def handle_game_over(self, winner):
+    # if loose, extend loosing statews 
+    if not winner == self.series_id:
+      new_states = []
+      for state in self.current_states:
+        if not state in self.loosing_states:
+          new_states.append(state)
+      if len(new_states) > 0:
+        self.loosing_states.extend(copy.deepcopy(new_states))
+      
+    self.current_states = []
+
+    if not winner == self.series_id:
+      print('Extending loosing_states. Now containing ' + str(len(self.loosing_states)) + ' states.')
+
   def post_process(self, nn_output, params): 
     nn_output = nn_output.reshape((self.config.size*self.config.size,))
     moves = np.asarray(params[1:])  # First one is who gets to move
+
+    is_first_move = params[1:].count(self.series_id) == 0
+
     # flip moves s.t. 1 indicates empty, 0 indicates not empty
     moves[moves == 0] = 10
     moves[moves == 1] = 0
@@ -510,9 +547,34 @@ class HexBoardNNBridgeOnlineTournament(GameBridge):
     # crucially it just sets invalid 
     values = self.mask(nn_output, np.asarray(moves).flatten())
 
+    # Use first-random-greedy if playing against the hardest model.
+    if self.should_play_first_move_random and is_first_move:
+      index = random.randint(0, values.shape[0]-1)
+    else:
+      # Else only choose greedy
+      # TODO: Test dette!!!
+      indecies = []
+      for _ in range(2):
+        i = list(values).index(max(values))
+        indecies.append(i)
+        value_list = list(values)
+        value_list[i] = 0 # set to a bad value to not be choosen again by max
+        values = tuple(value_list)
+      
+      found_new_state = False
+      for i in indecies:
+        new_state = list(params[1:])
+        new_state[i] = self.series_id
+        new_state = tuple(new_state)
+        if not new_state in self.loosing_states:
+          index = i
+          self.current_states.append(new_state)
+          found_new_state = True
+          break
 
-    # Allways choose greedy in tournament
-    index = list(values).index(max(values))
+      if not found_new_state:
+        index = indecies[0] # Default to the best posble state from the network
+
     pos = (index // self.config.size, index % self.config.size)
 
     return pos # ((x, y), player_to_move)

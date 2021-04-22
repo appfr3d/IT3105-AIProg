@@ -4,7 +4,7 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_DIR = os.path.join(CURRENT_DIR, "configs")
 
 class ConfigReader():
-  def __init__(self):
+  def __init__(self, path=None):
     """
     Sets values to all of the config variables to make sure all the values are initialized in case something is missing
     from the config.txt file. 
@@ -33,26 +33,30 @@ class ConfigReader():
     self.tiles = 5
     self.tiles_per_tile = 5
     self.tiling_offset = 0.1
+    self.y = 0.0
+    self.speed = 0.0
 
-    self.file_name = self.read_config()
+    self.file_name = self.read_config(path=path)
       
 
-  def read_config(self):
+  def read_config(self, path):
     """
     Reads the config.txt file and saves the values in the corresponding variables
     """
     # Ask the use which config file to use
-    config_files = [f for f in os.listdir(CONFIG_DIR) if f.startswith("config") and f.endswith(".txt")]
-    if len(config_files) > 1:
-      print('Which config file do you want to use?:')
-      for i in range(len(config_files)):
-        print('(' + str(i) + '): ' + config_files[i])
-      file_index = input('(0-'+str(len(config_files)-1)+'): ')
-      while not file_index.isdigit() or int(file_index) < 0 or int(file_index) > (len(config_files)-1):
+    file_name = path
+    if path is None:
+      config_files = [f for f in os.listdir(CONFIG_DIR) if f.startswith("config") and f.endswith(".txt")]
+      if len(config_files) > 1:
+        print('Which config file do you want to use?:')
+        for i in range(len(config_files)):
+          print('(' + str(i) + '): ' + config_files[i])
         file_index = input('(0-'+str(len(config_files)-1)+'): ')
-      file_name = config_files[int(file_index)]
-    else:
-      file_name = config_files[0]
+        while not file_index.isdigit() or int(file_index) < 0 or int(file_index) > (len(config_files)-1):
+          file_index = input('(0-'+str(len(config_files)-1)+'): ')
+        file_name = config_files[int(file_index)]
+      else:
+        file_name = config_files[0]
   
 
     f = open(os.path.join(CONFIG_DIR, file_name))

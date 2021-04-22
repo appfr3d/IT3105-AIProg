@@ -54,8 +54,8 @@ class NNActor(Actor):
       if num == 0:
         model.add(keras.layers.Input(dim))
       else:
-        model.add(keras.layers.Dense(dim, activation='relu'))
-    
+        model.add(keras.layers.Dense(dim, activation='sigmoid'))
+
     # Mean Square Error (MSE) metric works well with calculating TD-error by using target as in update function
     model.compile(optimizer=opt(lr=self.learning_rate), loss=loss, metrics=[keras.metrics.MSE]) 
     return model
@@ -78,7 +78,7 @@ class NNActor(Actor):
     for action in nn_input:
       vals.append(np.array(self.model(action))[0, 0])
     if random.random() <= self.epsilon:
-      r_indx = vals.index(random.choice(vals))
+      r_indx = random.randint(0, len(vals)-1)
     else:
       r_indx = vals.index(max(vals))
     return r_indx, nn_input[r_indx]

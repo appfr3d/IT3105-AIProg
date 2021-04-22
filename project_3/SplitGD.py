@@ -102,7 +102,7 @@ class ReinforcementGD(SplitGD):
     loss = loss_td.numpy()[0]
 
     # We check this to avoid divide by 0 errors
-    if loss < 0.000000000000001: 
+    if loss < 0.000000000001:
       # If loss is very, very small, gradient will also be very, very small, so we just map loss * and / operations to 
       # identity function as the very small gradient
       # will not be able to impact eligibility gradient tracking

@@ -51,8 +51,6 @@ class NNActor(Actor):
       dim = self.nn_dimensions[num]
       if num == 0:
         model.add(keras.layers.Input(dim))
-      elif num == len(self.nn_dimensions) -1:
-        model.add(keras.layers.Dense(dim, activation='softmax'))
       else:
         model.add(keras.layers.Dense(dim, activation='relu'))
     
@@ -74,9 +72,12 @@ class NNActor(Actor):
     self.nn.fit(old, target, verbosity=0)
   
   def select_action(self, nn_input):
-    output_dist = list(self.model(nn_input))
+    vals = []
+    for action in nn_input:
+      vals.append(list(self.model(action))[0])
     if random.random() <= self.epsilon:
-      return output_dist.index(random.choice(output_dist))
+      r_indx = vals.index(random.choice(vals))
     else:
-      return output_dist.index(max(output_dist))
+      r_indx = vals.index(max(vals))
+    return r_indx, nn_input[r_indx]
 

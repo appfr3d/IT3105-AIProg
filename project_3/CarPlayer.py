@@ -30,8 +30,20 @@ class CarPlayer(SimWorldPlayer):
       # print(x*self.tiles[num].y_tiles)
       # print(y)
       nn_input[indx] = 1
-    
-    return np.asarray(nn_input).reshape((1, len(nn_input)))
+
+    nn_input = np.asarray(nn_input)
+    nn1 = np.zeros(tiles_per_tile*len(self.tiles)+3)
+    nn2 = np.zeros(tiles_per_tile*len(self.tiles)+3)
+    nn3 = np.zeros(tiles_per_tile*len(self.tiles)+3)
+    nn1[:tiles_per_tile*len(self.tiles)] = nn_input
+    nn1[tiles_per_tile*len(self.tiles)] = 1  # Action 1
+    # and so on
+    nn2[:tiles_per_tile*len(self.tiles)] = nn_input
+    nn2[tiles_per_tile*len(self.tiles)+1] = 1
+    nn3[:tiles_per_tile*len(self.tiles)] = nn_input
+    nn3[tiles_per_tile*len(self.tiles)+2] = 1
+    return (nn1.reshape(1, tiles_per_tile*len(self.tiles)+3), nn2.reshape((1, tiles_per_tile*len(self.tiles)+3)), nn3.reshape((1, tiles_per_tile*len(self.tiles)+3)))
+
 
   def get_actions(self):
     return self.state.get_actions()

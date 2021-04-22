@@ -53,17 +53,15 @@ class ReinforcementLearner():
     self.actor.reset_eligibility() 
 
     # SARSA with eligibility traces w/nn functional approximator for Q 
-    old_state = self.sim_world_player.get_state()
-    old_action = self.actor.select_action(old_state)
+    old_state_actions = self.sim_world_player.get_state()
+    old_action, old_state = self.actor.select_action(old_state_actions)
     
     while not self.sim_world_player.get_game_over():
       self.sim_world_player.do_action(old_action)
-      new_state = self.sim_world_player.get_state()
+      new_state_actions = self.sim_world_player.get_state()
       reinforcement = self.sim_world_player.get_reward()
       
-      if not self.sim_world_player.get_game_over():
-        # If the game is over skip preparing next move
-        new_action = self.actor.select_action(new_state)
+      new_action, new_state = self.actor.select_action(new_state_actions)
       
       # Implemented in SplitGD by default
       # TD = self.actor.get_TD_error(reinforcement, old_state, new_state)

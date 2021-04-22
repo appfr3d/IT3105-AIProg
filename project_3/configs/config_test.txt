@@ -1,11 +1,11 @@
-number_of_episodes : 5
+number_of_episodes : 100
 
 critic_nn_dimentions : 125, 3
 
 critic_learning_rate : 0.1
 critic_eligibility_decay_rate : 0.9
 critic_discount_factor : 0.95
-initial_epsilon : 0.5
+initial_epsilon : 0.75
 epsilon_decay_rate : 0.99
 frame_delay : 10
 image_size : 1000

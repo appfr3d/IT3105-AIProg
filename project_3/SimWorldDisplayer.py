@@ -1,4 +1,4 @@
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageOps
 # import matplotllib.pyplot as plt
 from cv2 import cv2
 import numpy as np
@@ -95,6 +95,8 @@ class ImageDisplay():
     drawer = ImageDraw.Draw(img)
     for layer in layers:
       layer.draw(drawer)
+
+    img = ImageOps.flip(img)
     
     cv2.imshow('image',np.array(img))
     cv2.waitKey(frame_delay)

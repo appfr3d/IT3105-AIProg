@@ -1,19 +1,17 @@
 from ConfigReader import ConfigReader
 from SimWorldDisplayer import ImageDisplay
-from pegSolitaireBoard import PegSolitaireBoard
 from SimWorld import ShapeType
 from ReinforcementLearner import ReinforcementLearner
-from PegSolitairePlayer import PegSolitairePlayer
+from CarPlayer import CarPlayer
 import random
 from tqdm import tqdm
 
 
 config = ConfigReader()
-player = PegSolitairePlayer(config.empty_cells, config.board_type, config.size, config.image_size, config.frame_delay, config.win_reward, config.base_reward, config.peg_loss, config.peg_loss2, config.move_loss)
+player = CarPlayer(config)
 learner = ReinforcementLearner(player, config)
 
 learner.fit()
-print('Number of correct runs:', sum([1 for ele in learner.peg_log if ele == 1]))
 learner.display_game()
 
 

@@ -47,7 +47,7 @@ class ReinforcementLearner():
 
       # Linear
       # self.actor.epsilon = self.config.initial_epsilon * (1 - (episode/self.config.number_of_episodes))
-    self.test()
+    #self.test()
     savepath = 'models/' + str(time.time())
     self.actor.model.save(savepath)
     self.display_log(savepath)
@@ -71,7 +71,7 @@ class ReinforcementLearner():
       new_action, new_state = self.actor.select_action(new_state_actions)
 
       # Implemented in SplitGD by default
-      TD = self.actor.get_TD_error(reinforcement, old_state, new_state)
+      #TD = self.actor.get_TD_error(reinforcement, old_state, new_state)
       #print(self.actor.model(old_state), TD)
       self.actor.update(reinforcement, old_state, new_state)
       #print(self.actor.model(old_state))

@@ -10,9 +10,10 @@ class CarPlayer(SimWorldPlayer):
     self.state = CarWorld(self.config)
     self.sim_world_displayer = ImageDisplay(self.state, self.config.image_size)
     self.display = False
-    tiler = TwoDimTileFactory(-1.2, 0.6, -0.07, 0.07, self.config)
+    tiler = TwoDimTileFactory(-1.2, 0.6, -0.7, 0.7, self.config)
     self.tiles = tiler.make_tiles()
     self.has_won = False
+    #self.seen_tilings = []
     
   def reset_state(self):
     self.state = CarWorld(self.config)
@@ -20,36 +21,28 @@ class CarPlayer(SimWorldPlayer):
 
   def process_x_vel(self, x_pos, velocity):
     tiles_per_tile = self.tiles[0].get_tile_count()
-    nn_input = np.zeros((len(self.tiles), tiles_per_tile))
-    for num in range(len(self.tiles)):
-      x, y = self.tiles[num].get_tile(x_pos, velocity)
-      indx = y * self.tiles[num].y_tiles + x
-      # print(tiles_per_tile*num)
-      # print(x)
-      # print(x*self.tiles[num].y_tiles)
-      # print(y)
-      nn_input[num, indx] = 1
+    states = []
+    for num in range(3):
+      nn_input = np.zeros((3, len(self.tiles), tiles_per_tile))
+      for num2 in range(len(self.tiles)):
+        x, y = self.tiles[num2].get_tile(x_pos, velocity)
+        indx = y * self.tiles[num2].y_tiles + x
+        # print(tiles_per_tile*num)
+        # print(x)
+        # print(x*self.tiles[num].y_tiles)
+        # print(y)
+        nn_input[num, num2, indx] = 1
+      states.append(nn_input.flatten().reshape(1, 3 * len(self.tiles) * tiles_per_tile))
+    return states
 
-    nn_input = nn_input.flatten()
-    nn1 = np.zeros(tiles_per_tile * len(self.tiles) + 3)
-    nn2 = np.zeros(tiles_per_tile * len(self.tiles) + 3)
-    nn3 = np.zeros(tiles_per_tile * len(self.tiles) + 3)
-    nn1[:tiles_per_tile * len(self.tiles)] = nn_input
-    nn1[tiles_per_tile * len(self.tiles)] = 1  # Action 1
-    # and so on
-    nn2[:tiles_per_tile * len(self.tiles)] = nn_input
-    nn2[tiles_per_tile * len(self.tiles) + 1] = 1
-    nn3[:tiles_per_tile * len(self.tiles)] = nn_input
-    nn3[tiles_per_tile * len(self.tiles) + 2] = 1
-    return (
-    nn1.reshape(1, tiles_per_tile * len(self.tiles) + 3), nn2.reshape((1, tiles_per_tile * len(self.tiles) + 3)),
-    nn3.reshape((1, tiles_per_tile * len(self.tiles) + 3)))
-
-  def get_state(self):
+  def get_state(self, append=True):
     x_pos = self.state.state['x-pos']
     velocity = self.state.state['velocity']
 
-    return self.process_x_vel(x_pos, velocity)
+    state = self.process_x_vel(x_pos, velocity)
+    #if append:
+    #  self.seen_tilings.append(str(state))
+    return state
 
   def get_actions(self):
     return self.state.get_actions()
@@ -73,15 +66,10 @@ class CarPlayer(SimWorldPlayer):
     if self.state.get_win():
       self.has_won = True
       return self.config.win_reward
-    
-    # If we want to make a heuristic, add it here
-    # A lower estimate on the energy of the car must be a lower bound
-    r = self.state.state['x-pos'] + 0.5
-    if self.state.state['x-pos'] >= 0.5:
-      r += 1.0
-    #r = abs(self.state.state['x-pos'] - 0.5)
+
+    #if str(self.get_state(append=False)) in self.seen_tilings:
+    #  return self.config.base_reward
     return self.config.base_reward
-    #return self.config.speed * self.state.state['velocity']
 
   def get_log_metric(self):
     return self.state.get_log_metric()

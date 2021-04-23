@@ -26,11 +26,12 @@ class Actor():
 
 class NNActor(Actor):
   def __init__(self, config: ConfigReader):
-    self.epsilon = config.initial_epsilon
+    self.epsilon = config.initial_epsilonw
     self.learning_rate = config.critic_learning_rate
     self.eligibility_decay_rate = config.critic_eligibility_decay_rate
     self.discount_factor = config.critic_discount_factor
     self.nn_dimensions = config.critic_nn_dimentions
+    self.config = config
 
     self.model = self.generate_fully_connected()
     self.nn = SplitGD.ReinforcementGD(self.model, self.discount_factor, self.eligibility_decay_rate)
@@ -54,7 +55,7 @@ class NNActor(Actor):
       if num == 0:
         model.add(keras.layers.Input(dim))
       else:
-        model.add(keras.layers.Dense(dim, activation='sigmoid', kernel_initializer=keras.initializers.RandomNormal(mean=1.0, stddev=0.05)))
+        model.add(keras.layers.Dense(dim, activation=self.config.activation_function))
 
     # Mean Square Error (MSE) metric works well with calculating TD-error by using target as in update function
     model.compile(optimizer=opt(lr=self.learning_rate), loss=loss, metrics=[keras.metrics.MSE]) 
@@ -66,11 +67,11 @@ class NNActor(Actor):
 
     return reinforcement + self.discount_factor*self.model(old) - self.model(new)
   
-  def update(self, reinforcement, old_state, new_state): 
+  def update(self, reinforcement, old_state, new_state):
     new = tf.convert_to_tensor([new_state])
     old = tf.convert_to_tensor([old_state])
     # Here target used with MSE corresponds to TD error on derivation (based on handout material)
-    target = reinforcement + self.discount_factor * self.model(new) 
+    target = reinforcement + self.discount_factor * self.model(new)
     self.nn.fit(old, target, verbosity=0)
   
   def select_action(self, nn_input):
@@ -80,6 +81,19 @@ class NNActor(Actor):
     if random.random() <= self.epsilon:
       r_indx = random.randint(0, len(vals)-1)
     else:
-      r_indx = vals.index(max(vals))
+      #print(vals)
+      vals2 = np.asarray(vals)
+      # to avoid always taking the same action when all vals are 0 (happens rapidly)
+      # max(vals) to avoid an issue with very small floating point numbers that showed up...
+      if len(vals2[vals2 == max(vals)]) == 3 or max(vals) < 0.000000001:
+        r_indx = vals.index(max(vals))
+      elif len(vals2[vals2 == max(vals)]) == 1:
+        r_indx = random.randint(0, len(vals) - 1)
+      else:
+        if random.random() >= 0.5:
+          r_indx = vals.index(max(vals))
+        else:
+          vals.reverse()
+          r_indx = vals.index(max(vals))
     return r_indx, nn_input[r_indx]
 

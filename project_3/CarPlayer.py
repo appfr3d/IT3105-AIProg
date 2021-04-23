@@ -17,15 +17,12 @@ class CarPlayer(SimWorldPlayer):
     self.state = CarWorld(self.config)
     self.sim_world_displayer = ImageDisplay(self.state, self.config.image_size)
 
-  def get_state(self):
-    x_pos = self.state.state['x-pos']
-    velocity = self.state.state['velocity']
-
+  def process_x_vel(self, x_pos, velocity):
     tiles_per_tile = self.tiles[0].get_tile_count()
     nn_input = np.zeros((len(self.tiles), tiles_per_tile))
     for num in range(len(self.tiles)):
       x, y = self.tiles[num].get_tile(x_pos, velocity)
-      indx = y*self.tiles[num].y_tiles + x
+      indx = y * self.tiles[num].y_tiles + x
       # print(tiles_per_tile*num)
       # print(x)
       # print(x*self.tiles[num].y_tiles)
@@ -33,18 +30,25 @@ class CarPlayer(SimWorldPlayer):
       nn_input[num, indx] = 1
 
     nn_input = nn_input.flatten()
-    nn1 = np.zeros(tiles_per_tile*len(self.tiles)+3)
-    nn2 = np.zeros(tiles_per_tile*len(self.tiles)+3)
-    nn3 = np.zeros(tiles_per_tile*len(self.tiles)+3)
-    nn1[:tiles_per_tile*len(self.tiles)] = nn_input
-    nn1[tiles_per_tile*len(self.tiles)] = 1  # Action 1
+    nn1 = np.zeros(tiles_per_tile * len(self.tiles) + 3)
+    nn2 = np.zeros(tiles_per_tile * len(self.tiles) + 3)
+    nn3 = np.zeros(tiles_per_tile * len(self.tiles) + 3)
+    nn1[:tiles_per_tile * len(self.tiles)] = nn_input
+    nn1[tiles_per_tile * len(self.tiles)] = 1  # Action 1
     # and so on
-    nn2[:tiles_per_tile*len(self.tiles)] = nn_input
-    nn2[tiles_per_tile*len(self.tiles)+1] = 1
-    nn3[:tiles_per_tile*len(self.tiles)] = nn_input
-    nn3[tiles_per_tile*len(self.tiles)+2] = 1
-    return (nn1.reshape(1, tiles_per_tile*len(self.tiles)+3), nn2.reshape((1, tiles_per_tile*len(self.tiles)+3)), nn3.reshape((1, tiles_per_tile*len(self.tiles)+3)))
+    nn2[:tiles_per_tile * len(self.tiles)] = nn_input
+    nn2[tiles_per_tile * len(self.tiles) + 1] = 1
+    nn3[:tiles_per_tile * len(self.tiles)] = nn_input
+    nn3[tiles_per_tile * len(self.tiles) + 2] = 1
+    return (
+    nn1.reshape(1, tiles_per_tile * len(self.tiles) + 3), nn2.reshape((1, tiles_per_tile * len(self.tiles) + 3)),
+    nn3.reshape((1, tiles_per_tile * len(self.tiles) + 3)))
 
+  def get_state(self):
+    x_pos = self.state.state['x-pos']
+    velocity = self.state.state['velocity']
+
+    return self.process_x_vel(x_pos, velocity)
 
   def get_actions(self):
     return self.state.get_actions()
@@ -68,7 +72,13 @@ class CarPlayer(SimWorldPlayer):
       return self.config.win_reward
     
     # If we want to make a heuristic, add it here
-    return self.config.speed * self.state.state['velocity'] + self.config.y * get_y_pos(self.state.state['x-pos'])
+    # A lower estimate on the energy of the car must be a lower bound
+    #r = self.state.state['x-pos'] + 0.5
+    #if self.state.state['x-pos'] >= 0.5:
+    #  r += 1.0
+    #r = abs(self.state.state['x-pos'] - 0.5)
+    return self.config.base_reward
+    #return self.config.speed * self.state.state['velocity']
 
   def get_log_metric(self):
     return self.state.get_log_metric()
@@ -120,8 +130,8 @@ class TwoDimTile:
     y0 = y - self.y_min + self.y_offset
     x_tile = int(x0 // self.x_interval)
     y_tile = int(y0 // self.y_interval)
-    if (x_tile > self.x_tiles):
-      x_tile = self.x_tiles 
-    if (y_tile > self.y_tiles):
-      y_tile = self.y_tiles
+    if (x_tile >= self.x_tiles):
+      x_tile = self.x_tiles-1
+    if (y_tile >= self.y_tiles):
+      y_tile = self.y_tiles-1
     return x_tile, y_tile

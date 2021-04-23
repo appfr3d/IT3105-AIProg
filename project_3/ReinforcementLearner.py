@@ -5,6 +5,7 @@ from matplotlib import pyplot as plt
 import matplotlib
 from tqdm import tqdm
 import time
+import numpy as np
 
 from tensorflow.keras.callbacks import TensorBoard
 
@@ -29,6 +30,7 @@ class ReinforcementLearner():
     # Run all episodes
     for episode in tqdm(range(self.config.number_of_episodes), desc="Episode"):
       self.run_episode()
+      #self.test()
       #if self.sim_world_player.get_reward() == 1.0:
       #  self.actor.epsilon_decay()
       self.sim_world_player.reset_state()
@@ -51,27 +53,34 @@ class ReinforcementLearner():
     
   def run_episode(self):
     # Reset eligibility
-    #self.actor.reset_eligibility()
+    self.actor.reset_eligibility()
 
-    # SARSA with eligibility traces w/nn functional approximator for Q 
+    # SARSA with eligibility traces w/nn functional approximator for Q
     old_state_actions = self.sim_world_player.get_state()
     old_action, old_state = self.actor.select_action(old_state_actions)
-    
-    while not self.sim_world_player.get_game_over():
+    win = False
+    last_win = False
+
+    while not last_win:
       self.sim_world_player.do_action(old_action)
       new_state_actions = self.sim_world_player.get_state()
       reinforcement = self.sim_world_player.get_reward()
-      
-      new_action, new_state = self.actor.select_action(new_state_actions)
-      
-      # Implemented in SplitGD by default
-      # TD = self.actor.get_TD_error(reinforcement, old_state, new_state)
 
+      new_action, new_state = self.actor.select_action(new_state_actions)
+
+      # Implemented in SplitGD by default
+      TD = self.actor.get_TD_error(reinforcement, old_state, new_state)
+      #print(self.actor.model(old_state), TD)
       self.actor.update(reinforcement, old_state, new_state)
+      #print(self.actor.model(old_state))
 
       old_state = new_state
       old_action = new_action
+      last_win = win
+      win = self.sim_world_player.get_game_over()
 
+    if self.sim_world_player.get_log_metric() < 1000:
+      print(self.sim_world_player.get_log_metric())
     self.peg_log.append(self.sim_world_player.get_log_metric())
   
   def display_log(self, savepath):
@@ -81,7 +90,7 @@ class ReinforcementLearner():
     
     plot_name = savepath + "/graph.png"
     plt.savefig(plot_name)
-    #plt.show()
+    plt.show()
 
   def display_game(self):
     self.actor.epsilon = 0
@@ -89,3 +98,24 @@ class ReinforcementLearner():
     self.sim_world_player.force_display_frame()
 
     self.run_episode()
+
+  def test(self):
+    test_tuples = []
+    for num in range(-28, 12):
+      for num2 in range(-14, 14):
+        test_tuples.append((num2/20, num/20))
+
+    nn_inputs = []
+    for tuple in test_tuples:
+      nn_inputs.append(self.sim_world_player.process_x_vel(tuple[0], tuple[1]))
+
+    q_vals = []
+    for inp in nn_inputs:
+      part = []
+      for inp2 in inp:
+        part.append(self.actor.model(inp2).numpy()[0][0])
+      q_vals.append(part)
+
+    for num in range(len(test_tuples)):
+      print(str(test_tuples[num]) + ": ")
+      print(q_vals[num])

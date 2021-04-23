@@ -10,8 +10,9 @@ class CarPlayer(SimWorldPlayer):
     self.state = CarWorld(self.config)
     self.sim_world_displayer = ImageDisplay(self.state, self.config.image_size)
     self.display = False
-    tiler = TwoDimTileFactory(-1.2, 0.6, -0.7, 0.7, self.config)
+    tiler = TwoDimTileFactory(-1.2, 0.6, -0.07, 0.07, self.config)
     self.tiles = tiler.make_tiles()
+    self.has_won = False
     
   def reset_state(self):
     self.state = CarWorld(self.config)
@@ -57,6 +58,7 @@ class CarPlayer(SimWorldPlayer):
     # map from nn output to force
     action = float(action)-1
     # then do action
+    #print(action, end=',    ')
     self.state.make_move({'force': action})
     if self.display:
       self.sim_world_displayer.display(self.config.frame_delay)
@@ -69,13 +71,14 @@ class CarPlayer(SimWorldPlayer):
       return math.cos(3*(x_pos + math.pi/2))
 
     if self.state.get_win():
+      self.has_won = True
       return self.config.win_reward
     
     # If we want to make a heuristic, add it here
     # A lower estimate on the energy of the car must be a lower bound
-    #r = self.state.state['x-pos'] + 0.5
-    #if self.state.state['x-pos'] >= 0.5:
-    #  r += 1.0
+    r = self.state.state['x-pos'] + 0.5
+    if self.state.state['x-pos'] >= 0.5:
+      r += 1.0
     #r = abs(self.state.state['x-pos'] - 0.5)
     return self.config.base_reward
     #return self.config.speed * self.state.state['velocity']

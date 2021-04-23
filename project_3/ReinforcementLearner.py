@@ -29,7 +29,9 @@ class ReinforcementLearner():
   def fit(self):
     # Run all episodes
     for episode in tqdm(range(self.config.number_of_episodes), desc="Episode"):
-      self.test()
+      #self.test()
+      #self.display_game()
+
       self.run_episode()
       #if self.sim_world_player.get_reward() == 1.0:
       #  self.actor.epsilon_decay()
@@ -103,9 +105,9 @@ class ReinforcementLearner():
 
   def test(self):
     test_tuples = []
-    for num in range(-28, 12):
+    for num in range(-240, 120):
       for num2 in range(-14, 14):
-        test_tuples.append((num2/20, num/20))
+        test_tuples.append((num/200, num2/200))
 
     nn_inputs = []
     for tuple in test_tuples:
@@ -118,7 +120,7 @@ class ReinforcementLearner():
         part.append(self.actor.model(inp2).numpy()[0][0])
       q_vals.append(part)
 
-    test_tuples.reverse()
+    q_vals.reverse()
     print("")
     for num in range(self.config.tiles):
       for num2 in range(self.config.tiles):

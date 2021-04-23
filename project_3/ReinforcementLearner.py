@@ -47,7 +47,7 @@ class ReinforcementLearner():
 
       # Linear
       # self.actor.epsilon = self.config.initial_epsilon * (1 - (episode/self.config.number_of_episodes))
-    self.test()
+    #self.test()
     savepath = 'models/' + str(time.time())
     self.actor.model.save(savepath)
     self.display_log(savepath)

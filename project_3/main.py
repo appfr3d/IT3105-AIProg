@@ -10,13 +10,22 @@ from tqdm import tqdm
 
 # Toggle for random testing or not
 is_random_testing = False
+is_batch_testing = True
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+CONFIG_DIR = os.path.join(CURRENT_DIR, "configs")
 
-if not is_random_testing:
+if not is_random_testing and not is_batch_testing:
   config = ConfigReader()
   player = CarPlayer(config)
   learner = ReinforcementLearner(player, config)
   learner.fit()
   learner.display_game()
+elif is_batch_testing:
+  for configs in [f for f in os.listdir(CONFIG_DIR) if f.startswith("config") and f.endswith(".txt")]:
+    config = ConfigReader(configs)
+    player = CarPlayer(config)
+    learner = ReinforcementLearner(player, config)
+    learner.fit()
 else:
   while True:
     config = ConfigReader()

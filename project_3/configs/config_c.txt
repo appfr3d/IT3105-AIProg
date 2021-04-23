@@ -14,4 +14,4 @@ win_reward : 300.0
 tiles : 3
 tiles_per_tile : 10
 tiling_offset : 0.0001
-activation_function : linear
+activation_function : relu

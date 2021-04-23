@@ -34,10 +34,11 @@ class ConfigReader():
     self.tiles_per_tile = 5
     self.tiling_offset = 0.1
     
-    self.y = 0.0
-    self.speed = 0.0
+    self.y = 0.01
+    self.speed = 0.01
 
     self.file_name = self.read_config(path=path)
+    self.activation_function = 'sigmoid'
       
 
   def read_config(self, path):
@@ -112,7 +113,9 @@ class ConfigReader():
       
       elif key == 'tiling_offset':
         self.tiling_offset = float(val)
-      
+
+      elif key == 'activation_function':
+        self.activation_function = val
     return file_name
 
   def copy_config(self, savepath):

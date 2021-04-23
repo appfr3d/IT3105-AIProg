@@ -69,7 +69,7 @@ class ReinforcementLearner():
       new_action, new_state = self.actor.select_action(new_state_actions)
 
       # Implemented in SplitGD by default
-      TD = self.actor.get_TD_error(reinforcement, old_state, new_state)
+      # TD = self.actor.get_TD_error(reinforcement, old_state, new_state)
       #print(self.actor.model(old_state), TD)
       self.actor.update(reinforcement, old_state, new_state)
       #print(self.actor.model(old_state))

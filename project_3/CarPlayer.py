@@ -10,8 +10,9 @@ class CarPlayer(SimWorldPlayer):
     self.state = CarWorld(self.config)
     self.sim_world_displayer = ImageDisplay(self.state, self.config.image_size)
     self.display = False
-    tiler = TwoDimTileFactory(-1.2, 0.6, -0.7, 0.7, self.config)
+    tiler = TwoDimTileFactory(-1.2, 0.6, -0.07, 0.07, self.config)
     self.tiles = tiler.make_tiles()
+    
     
   def reset_state(self):
     self.state = CarWorld(self.config)
@@ -23,10 +24,11 @@ class CarPlayer(SimWorldPlayer):
     for num in range(len(self.tiles)):
       x, y = self.tiles[num].get_tile(x_pos, velocity)
       indx = y * self.tiles[num].y_tiles + x
-      # print(tiles_per_tile*num)
-      # print(x)
-      # print(x*self.tiles[num].y_tiles)
-      # print(y)
+      print(' Test:')
+      print(tiles_per_tile*num)
+      print(x)
+      print(x*self.tiles[num].y_tiles)
+      print(y)
       nn_input[num, indx] = 1
 
     nn_input = nn_input.flatten()
@@ -65,8 +67,8 @@ class CarPlayer(SimWorldPlayer):
     return self.state.get_game_over()
   
   def get_reward(self):
-    def get_y_pos(x_pos):
-      return math.cos(3*(x_pos + math.pi/2))
+    # def get_y_pos(x_pos):
+    #   return math.cos(3*(x_pos + math.pi/2))
 
     if self.state.get_win():
       return self.config.win_reward
@@ -86,6 +88,18 @@ class CarPlayer(SimWorldPlayer):
   def force_display_frame(self):
     # Make the sim_world_displayer display a frame
     self.sim_world_displayer.display(self.config.frame_delay)
+
+  # def display_tiles(self):
+  #   import matplotlib.pyplot as plt
+  #   x_bounds = [-1.2, 0.6]
+  #   y_bounds = [-0.07, 0.07]
+  #   for t_i in range(len(self.tiles)):
+  #     tile = self.tiles[t_i]
+  #     x = []
+  #     y = []
+  #     for 
+
+
 
 class TwoDimTileFactory:
   def __init__(self, dim1min, dim1max, dim2min, dim2max, config):

@@ -55,8 +55,7 @@ class NNActor(Actor):
       if num == 0:
         model.add(keras.layers.Input(dim))
       else:
-        model.add(keras.layers.Dense(dim, activation=self.config.activation_function,
-                                     kernel_initializer=keras.initializers.RandomNormal(mean=0.5, stddev=1.0)))
+        model.add(keras.layers.Dense(dim, activation=self.config.activation_function))
 
     # Mean Square Error (MSE) metric works well with calculating TD-error by using target as in update function
     model.compile(optimizer=opt(lr=self.learning_rate), loss=loss, metrics=[keras.metrics.MSE])

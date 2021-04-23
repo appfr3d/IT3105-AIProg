@@ -84,13 +84,15 @@ class ReinforcementLearner():
     self.peg_log.append(self.sim_world_player.get_log_metric())
   
   def display_log(self, savepath):
-    plt.scatter(range(0, len(self.peg_log)), self.peg_log)
+    fig, ax = plt.subplots()
+    ax.scatter(range(0, len(self.peg_log)), self.peg_log)
     plt.xlabel("Episode")
     plt.ylabel("Number of moves")
     
     plot_name = savepath + "/graph.png"
     plt.savefig(plot_name)
-    plt.show()
+    plt.close(fig)
+    #ax.show()
 
   def display_game(self):
     self.actor.epsilon = 0

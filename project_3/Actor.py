@@ -26,7 +26,7 @@ class Actor():
 
 class NNActor(Actor):
   def __init__(self, config: ConfigReader):
-    self.epsilon = config.initial_epsilonw
+    self.epsilon = config.initial_epsilon
     self.learning_rate = config.critic_learning_rate
     self.eligibility_decay_rate = config.critic_eligibility_decay_rate
     self.discount_factor = config.critic_discount_factor

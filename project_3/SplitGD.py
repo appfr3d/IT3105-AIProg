@@ -121,7 +121,7 @@ class ReinforcementGD(SplitGD):
     # So we need to get TD error from somewhere
     # wi←wi+αδe
     if tarset[0] < 0.0:
-      return -self.eligibility_gradients * loss
+      return -(self.eligibility_gradients * loss)
     return self.eligibility_gradients * loss
 
   def fit(self, features, targets, epochs=1, mbs=1,vfrac=0.1,verbosity=1,callbacks=[]):

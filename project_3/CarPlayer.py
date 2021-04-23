@@ -14,7 +14,6 @@ class CarPlayer(SimWorldPlayer):
     self.tiles = tiler.make_tiles()
     self.has_won = False
     
-    
   def reset_state(self):
     self.state = CarWorld(self.config)
     self.sim_world_displayer = ImageDisplay(self.state, self.config.image_size)
@@ -25,11 +24,11 @@ class CarPlayer(SimWorldPlayer):
     for num in range(len(self.tiles)):
       x, y = self.tiles[num].get_tile(x_pos, velocity)
       indx = y * self.tiles[num].y_tiles + x
-      print(' Test:')
-      print(tiles_per_tile*num)
-      print(x)
-      print(x*self.tiles[num].y_tiles)
-      print(y)
+      # print(' Test:')
+      # print(tiles_per_tile*num)
+      # print(x)
+      # print(x*self.tiles[num].y_tiles)
+      # print(y)
       nn_input[num, indx] = 1
 
     nn_input = nn_input.flatten()
@@ -120,9 +119,9 @@ class TwoDimTileFactory:
     tiles = []
     for num in range(self.config.tiles):
       # Odd numbers per reccomendation in Sutton \
-      alpha = self.config.tiling_offset/(self.config.tiles)
-      x_offset = alpha * (1*num)
-      y_offset = alpha * (3*num)
+      # alpha = self.config.tiling_offset/(self.config.tiles)
+      x_offset = num * (self.x_interval/self.config.tiles)
+      y_offset = num * (self.y_interval/self.config.tiles)
       tile = TwoDimTile(self.x_interval, self.y_interval, x_offset, y_offset, self.tiles_per_tile_sqrt, self.tiles_per_tile_sqrt, self.dim1min, self.dim2min)
       tiles.append(tile)
     return tiles

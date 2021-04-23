@@ -25,7 +25,7 @@ class Actor():
 
 
 class NNActor(Actor):
-  def __init__(self, config: ConfigReader):
+  def __init__(self, config: ConfigReader, model_path=None):
     self.epsilon = config.initial_epsilon
     self.learning_rate = config.critic_learning_rate
     self.eligibility_decay_rate = config.critic_eligibility_decay_rate
@@ -33,7 +33,11 @@ class NNActor(Actor):
     self.nn_dimensions = config.critic_nn_dimentions
     self.config = config
 
-    self.model = self.generate_fully_connected()
+    if model_path == None:
+      self.model = self.generate_fully_connected()
+    else:
+      self.model = keras.models.load_model(model_path, compile=False)
+      
     self.nn = SplitGD.ReinforcementGD(self.model, self.discount_factor, self.eligibility_decay_rate)
 
     self.model.summary()

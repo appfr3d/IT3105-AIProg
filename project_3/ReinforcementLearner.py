@@ -10,7 +10,7 @@ import numpy as np
 from tensorflow.keras.callbacks import TensorBoard
 
 class ReinforcementLearner():
-  def __init__(self, sim_world_player, config: ConfigReader):
+  def __init__(self, sim_world_player, config: ConfigReader, model_path=None):
     """
     :param actor: An actor agent
     :param critic: A critic agent
@@ -18,7 +18,7 @@ class ReinforcementLearner():
     """
 
     # Init critic based in config.critic_type
-    self.actor = NNActor(config)
+    self.actor = NNActor(config, model_path)
 
     self.config = config
     self.sim_world_player = sim_world_player

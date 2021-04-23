@@ -2,6 +2,7 @@ from PIL import Image, ImageDraw, ImageOps
 # import matplotllib.pyplot as plt
 from cv2 import cv2
 import numpy as np
+import os
 
 # "Interface" class for drawable entities
 class DrawableInterface():
@@ -82,6 +83,7 @@ class ImageDisplay():
     """
     self.sim_world = sim_world
     self.image_size = image_size
+    self.images = []
 
   def display(self, frame_delay):
     """
@@ -98,9 +100,16 @@ class ImageDisplay():
 
     img = ImageOps.flip(img)
     
+    self.images.append(img)
+
     cv2.imshow('image',np.array(img))
     cv2.waitKey(frame_delay)
 
     # img.show()
+  
+  def save_gif(self, path):
+    gif_name = os.path.join(path, 'model.gif')
+    self.images[0].save(gif_name, save_all=True, append_images=self.images[1::2], duration=1, loop=0)
+    self.images = []
     
       

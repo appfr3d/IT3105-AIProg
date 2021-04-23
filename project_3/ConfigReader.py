@@ -36,10 +36,11 @@ class ConfigReader():
     
     self.y = 0.01
     self.speed = 0.01
+    self.activation_function = 'sigmoid'
+
 
     self.file_name = self.read_config(path=path)
-    self.activation_function = 'sigmoid'
-      
+
 
   def read_config(self, path):
     """

@@ -109,7 +109,7 @@ class ImageDisplay():
   
   def save_gif(self, path):
     gif_name = os.path.join(path, 'model.gif')
-    self.images[0].save(gif_name, save_all=True, append_images=self.images[1::2], duration=1, loop=0)
+    self.images[0].save(gif_name, save_all=True, append_images=self.images[1::2], duration=1, loop=1)
     self.images = []
     
       

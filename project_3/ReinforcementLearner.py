@@ -29,8 +29,8 @@ class ReinforcementLearner():
   def fit(self):
     # Run all episodes
     for episode in tqdm(range(self.config.number_of_episodes), desc="Episode"):
-      self.run_episode()
       self.test()
+      self.run_episode()
       #if self.sim_world_player.get_reward() == 1.0:
       #  self.actor.epsilon_decay()
       self.sim_world_player.reset_state()
@@ -45,12 +45,12 @@ class ReinforcementLearner():
 
       # Linear
       # self.actor.epsilon = self.config.initial_epsilon * (1 - (episode/self.config.number_of_episodes))
-      
+    self.test()
     savepath = 'models/' + str(time.time())
     self.actor.model.save(savepath)
     self.display_log(savepath)
     self.config.copy_config(savepath)
-    
+
   def run_episode(self):
     # Reset eligibility
     self.actor.reset_eligibility()
@@ -92,7 +92,7 @@ class ReinforcementLearner():
     plot_name = savepath + "/graph.png"
     plt.savefig(plot_name)
     plt.close(fig)
-    ax.show()
+    plt.show()
 
   def display_game(self):
     self.actor.epsilon = 0
@@ -118,6 +118,15 @@ class ReinforcementLearner():
         part.append(self.actor.model(inp2).numpy()[0][0])
       q_vals.append(part)
 
-    for num in range(len(test_tuples)):
-      print(str(test_tuples[num]) + ": ")
-      print(q_vals[num])
+    test_tuples.reverse()
+    print("")
+    for num in range(self.config.tiles):
+      for num2 in range(self.config.tiles):
+        r = max(q_vals[num*self.config.tiles + num2])
+        if q_vals[num*self.config.tiles + num2][0] == r:
+          print("L", end='')
+        if q_vals[num*self.config.tiles + num2][1] == r:
+          print("N", end='')
+        if q_vals[num*self.config.tiles + num2][2] == r:
+          print("R", end='')
+      print("")

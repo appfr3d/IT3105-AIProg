@@ -1,17 +1,17 @@
 number_of_episodes : 10
 
-critic_nn_dimentions : [128, 1]
+critic_nn_dimentions : [128, 32, 8, 1]
 
 critic_learning_rate : 0.1
 critic_eligibility_decay_rate : 0.9
 critic_discount_factor : 0.9
-initial_epsilon : 0.3
+initial_epsilon : 0.0
 epsilon_decay_rate : 1.0
 frame_delay : 1
 image_size : 1000
-base_reward : -1.0
+base_reward : 0.1
 win_reward : 300.0
 tiles : 5
 tiles_per_tile : 5
 tiling_offset : 0.0001
-activation_function : linear
+activation_function : relu

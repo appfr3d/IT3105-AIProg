@@ -10,7 +10,7 @@ class CarPlayer(SimWorldPlayer):
     self.state = CarWorld(self.config)
     self.sim_world_displayer = ImageDisplay(self.state, self.config.image_size)
     self.display = False
-    tiler = TwoDimTileFactory(-1.2, 0.6, -0.7, 0.7, self.config)
+    tiler = TwoDimTileFactory(-1.2, 0.6, -0.07, 0.07, self.config)
     self.tiles = tiler.make_tiles()
     self.has_won = False
     #self.seen_tilings = []

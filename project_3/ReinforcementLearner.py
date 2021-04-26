@@ -53,7 +53,7 @@ class ReinforcementLearner():
     self.display_log(savepath)
     self.config.copy_config(savepath)
 
-  def run_episode(self):
+  def run_episode(self, display=False):
     # Reset eligibility
     self.actor.reset_eligibility()
 
@@ -73,7 +73,8 @@ class ReinforcementLearner():
       # Implemented in SplitGD by default
       # TD = self.actor.get_TD_error(reinforcement, old_state, new_state)
       #print(self.actor.model(old_state), TD)
-      self.actor.update(reinforcement, old_state, new_state)
+      if not display:
+        self.actor.update(reinforcement, old_state, new_state)
       #print(self.actor.model(old_state))
 
       old_state = new_state
@@ -101,7 +102,7 @@ class ReinforcementLearner():
     self.sim_world_player.display = True
     self.sim_world_player.force_display_frame()
 
-    self.run_episode()
+    self.run_episode(display=True)
 
   def test(self):
     test_tuples = []

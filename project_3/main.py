@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 # Toggle for random testing or not
 is_random_testing = False
-is_batch_testing = False
+is_batch_testing = True
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_DIR = os.path.join(CURRENT_DIR, "configs")
 

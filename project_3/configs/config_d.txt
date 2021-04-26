@@ -1,6 +1,6 @@
 number_of_episodes : 200
 critic_nn_dimentions : [648, 1]
-critic_learning_rate : 0.1
+critic_learning_rate : 0.001
 critic_discount_factor : 0.9
 initial_epsilon : 0.3
 epsilon_decay_rate : 1.0
